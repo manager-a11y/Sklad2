@@ -3,66 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DEEPLY Skladový Systém</title>
+    <title>DEEPLY Sklad & Presun</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <style>
-        :root { --yellow: #FFD700; --dark: #1a1a1a; --bg: #f4f4f4; --white: #ffffff; }
+        :root { --yellow: #FFD700; --dark: #1a1a1a; --bg: #f4f4f7; --white: #ffffff; }
         body { font-family: -apple-system, system-ui, sans-serif; margin: 0; background: var(--bg); color: var(--dark); -webkit-tap-highlight-color: transparent; }
         
-        /* LOGIN */
-        #view-login { height: 100vh; display: flex; justify-content: center; align-items: center; background: var(--yellow); }
-        .login-card { background: white; padding: 40px; border-radius: 30px; width: 280px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        header { background: var(--yellow); padding: 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .logo { font-weight: 900; font-size: 22px; }
         
-        /* HEADER */
-        header { background: var(--yellow); padding: 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; font-weight: 900; font-size: 20px; }
-        .nav-btn { background: rgba(255,255,255,0.4); border: none; padding: 10px; border-radius: 12px; cursor: pointer; font-size: 20px; }
-
         .container { padding: 15px; max-width: 600px; margin: auto; }
+        .card { background: white; border-radius: 25px; padding: 20px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         
-        /* KATEGÓRIE (Sklady vs Prevádzky) */
-        .cat-nav { display: flex; gap: 10px; margin-bottom: 20px; }
-        .cat-btn { flex: 1; padding: 12px; border-radius: 15px; border: none; background: white; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .cat-nav { display: flex; gap: 8px; margin-bottom: 15px; }
+        .cat-btn { flex: 1; padding: 14px; border-radius: 18px; border: none; background: white; font-weight: bold; cursor: pointer; }
         .cat-btn.active { background: var(--dark); color: white; }
 
-        /* KARTY */
-        .card { background: white; border-radius: 20px; padding: 20px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); cursor: pointer; }
-        .card h3 { margin: 0; font-size: 18px; }
-        .card-info { font-size: 12px; color: #888; margin-top: 5px; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 5px; }
+        .tab { padding: 8px 15px; background: #eee; border-radius: 12px; font-size: 14px; font-weight: bold; cursor: pointer; white-space: nowrap; }
+        .tab.active { background: var(--yellow); color: var(--dark); }
 
-        /* TABS (Materiál / Pomôcky / Checklist) */
-        .tabs { display: flex; border-bottom: 2px solid #eee; margin-bottom: 15px; }
-        .tab { flex: 1; padding: 10px; text-align: center; font-weight: bold; color: #aaa; cursor: pointer; }
-        .tab.active { color: var(--dark); border-bottom: 3px solid var(--yellow); }
+        .item-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f0f0f0; }
+        .qty-ctrl { display: flex; align-items: center; gap: 8px; }
+        .btn-q { width: 38px; height: 38px; border-radius: 12px; border: none; background: #f0f0f0; font-weight: bold; cursor: pointer; }
+        .qty-val { font-weight: 800; width: 40px; text-align: center; background: none; border: none; font-size: 16px; color: var(--dark); }
 
-        /* POLOŽKY */
-        .item-row { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #f5f5f5; }
-        .qty-ctrl { display: flex; align-items: center; gap: 15px; background: #f9f9f9; padding: 5px; border-radius: 15px; }
-        .btn-q { width: 40px; height: 40px; border-radius: 12px; border: none; background: white; font-weight: bold; font-size: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .qty-val { font-weight: 900; min-width: 30px; text-align: center; }
-
+        /* KOŠÍK */
+        #cart-bar { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--dark); color: white; padding: 15px 25px; border-radius: 30px; display: flex; gap: 20px; align-items: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3); z-index: 1000; }
+        
         .hidden { display: none !important; }
-        input, select { width: 100%; padding: 15px; margin: 10px 0; border-radius: 15px; border: 1px solid #ddd; box-sizing: border-box; font-size: 16px; }
-        .btn-main { width: 100%; padding: 18px; background: var(--dark); color: white; border: none; border-radius: 15px; font-weight: bold; cursor: pointer; }
+        input, select { width: 100%; padding: 15px; margin: 8px 0; border-radius: 15px; border: 1px solid #ddd; font-size: 16px; box-sizing: border-box; }
+        .btn-main { width: 100%; padding: 18px; background: var(--dark); color: white; border: none; border-radius: 18px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        
+        #view-login { height: 100vh; display: flex; justify-content: center; align-items: center; background: var(--yellow); }
     </style>
 </head>
 <body>
 
 <div id="view-login">
-    <div class="login-card">
-        <h1 style="letter-spacing:-2px;">DEEPLY</h1>
+    <div class="card" style="width:280px; text-align:center;">
+        <h1 style="margin-top:0;">DEEPLY</h1>
         <input type="text" id="l-u" placeholder="Meno">
         <input type="password" id="l-p" placeholder="Heslo">
-        <button class="btn-main" onclick="tryLogin()">PRIHLÁSIŤ SA</button>
+        <button class="btn-main" onclick="tryLogin()">VSTÚPIŤ</button>
     </div>
 </div>
 
 <div id="view-app" class="hidden">
     <header>
-        <span>DEEPLY</span>
+        <span class="logo">DEEPLY</span>
         <div style="display:flex; gap:10px;">
-            <button id="admin-btn" class="nav-btn hidden" onclick="showView('view-admin')">⚙️</button>
-            <button class="nav-btn" onclick="location.reload()">🚪</button>
+            <button id="admin-btn" class="btn-q hidden" onclick="showView('view-admin')">⚙️</button>
+            <button class="btn-q" onclick="location.reload()">🚪</button>
         </div>
     </header>
 
@@ -76,14 +69,12 @@
         </div>
 
         <div id="view-detail" class="hidden">
-            <button onclick="showView('view-list')" style="background:none; border:none; font-weight:bold; margin-bottom:15px; cursor:pointer;">← SPÄŤ</button>
-            <h2 id="det-title" style="margin:0 0 5px 0;">-</h2>
-            <div id="det-last-check" class="card-info" style="margin-bottom:20px;">Posledná kontrola: nikdy</div>
-
+            <button onclick="showView('view-list')" style="background:none; border:none; font-weight:bold; margin-bottom:15px;">← SPÄŤ</button>
+            <h2 id="det-title" style="margin:0 0 15px 0;">-</h2>
+            
             <div class="tabs">
                 <div class="tab active" onclick="setTab('material', this)">Materiál</div>
                 <div class="tab" onclick="setTab('pomocky', this)">Pomôcky</div>
-                <div id="tab-check-btn" class="tab" onclick="setTab('checklist', this)">Checklist</div>
                 <div class="tab" onclick="setTab('historia', this)">História</div>
             </div>
 
@@ -92,29 +83,19 @@
 
         <div id="view-admin" class="hidden">
             <button onclick="showView('view-list')" style="background:none; border:none; font-weight:bold; margin-bottom:15px;">← SPÄŤ</button>
-            <h2>Administrácia</h2>
             <div class="card">
-                <h3>Pridať užívateľa</h3>
-                <input type="text" id="adm-u-name" placeholder="Meno">
-                <input type="text" id="adm-u-pass" placeholder="Heslo">
-                <select id="adm-u-role">
-                    <option value="supervisor">Supervisor</option>
-                    <option value="manager">Manager</option>
-                </select>
-                <button class="btn-main" onclick="dbAddUser()">ULOŽIŤ</button>
-                <div id="user-list-ui" style="margin-top:15px;"></div>
-            </div>
-            <div class="card">
-                <h3>Vytvoriť prevádzku/sklad</h3>
-                <input type="text" id="adm-p-name" placeholder="Názov">
-                <select id="adm-p-type">
-                    <option value="sklad">Sklad</option>
-                    <option value="prevadzka">Prevádzka</option>
-                </select>
-                <button class="btn-main" onclick="dbAddP()">VYTVORIŤ</button>
+                <h3>Správa užívateľov / Prevádzok</h3>
+                <button class="btn-main" style="background:#444" onclick="addUserPrompt()">+ PRIDAŤ UŽÍVATEĽA</button>
+                <button class="btn-main" style="background:#444" onclick="addPPrompt()">+ NOVÁ PREVÁDZKA/SKLAD</button>
             </div>
         </div>
     </div>
+</div>
+
+<div id="cart-bar" class="hidden">
+    <span id="cart-count">0 položiek</span>
+    <button onclick="openTransfer()" style="background:var(--yellow); border:none; padding:8px 15px; border-radius:12px; font-weight:bold;">PRESUNÚŤ</button>
+    <button onclick="clearCart()" style="background:none; border:none; color:white; font-size:20px;">✕</button>
 </div>
 
 <script>
@@ -129,23 +110,22 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    let currentUser = null;
-    let aktCat = 'sklad';
-    let aktTab = 'material';
-    let aktP = "";
+    let user = null;
+    let aktCat = 'sklad', aktTab = 'material', aktP = "";
+    let cart = {};
 
     function tryLogin() {
         const u = document.getElementById('l-u').value.trim().toLowerCase();
         const p = document.getElementById('l-p').value.trim();
-        db.ref('users/' + u).once('value', snap => {
-            const d = snap.val();
-            if (d && String(d.pass) === String(p)) {
-                currentUser = { name: u, role: d.role };
+        db.ref('users/'+u).once('value', s => {
+            const d = s.val();
+            if(d && String(d.pass) === String(p)) {
+                user = { name: u, role: d.role };
                 document.getElementById('view-login').classList.add('hidden');
                 document.getElementById('view-app').classList.remove('hidden');
                 if(d.role === 'manager') document.getElementById('admin-btn').classList.remove('hidden');
                 initApp();
-            } else { alert("Chyba prihlásenia."); }
+            } else alert("Chyba!");
         });
     }
 
@@ -163,21 +143,15 @@
             const data = snap.val() || {};
             Object.keys(data).forEach(p => {
                 if(data[p]._type === aktCat) {
-                    const last = data[p]._lastCheck || "Nikdy";
-                    list.innerHTML += `<div class="card" onclick="openP('${p}')"><h3>${p}</h3><div class="card-info">Posledná kontrola: ${last}</div></div>`;
+                    list.innerHTML += `<div class="card" onclick="openP('${p}')"><h3>${p}</h3><div style="font-size:12px; color:gray;">Posledná zmena: ${data[p]._last || '-'}</div></div>`;
                 }
             });
         });
     }
 
     function openP(p) {
-        aktP = p;
-        showView('view-detail');
+        aktP = p; showView('view-detail');
         document.getElementById('det-title').innerText = p;
-        // Skryť checklist ak ide o sklad
-        db.ref('prevadzky/'+p+'/_type').once('value', s => {
-            document.getElementById('tab-check-btn').style.display = (s.val() === 'sklad') ? 'none' : 'block';
-        });
         loadTab();
     }
 
@@ -190,35 +164,50 @@
 
     function loadTab() {
         const cont = document.getElementById('tab-content');
-        cont.innerHTML = "Načítavam...";
-        
         db.ref(`prevadzky/${aktP}`).on('value', snap => {
             const data = snap.val() || {};
-            document.getElementById('det-last-check').innerText = "Posledná kontrola: " + (data._lastCheck || "Nikdy");
             cont.innerHTML = "";
-
             if(aktTab === 'material' || aktTab === 'pomocky') {
                 const items = data[aktTab] || {};
                 Object.keys(items).forEach(it => {
-                    cont.innerHTML += `<div class="item-row"><span>${it}</span><div class="qty-ctrl"><button class="btn-q" onclick="changeQty('${aktTab}','${it}',-1)">-</button><span class="qty-val">${items[it]}</span><button class="btn-q" onclick="changeQty('${aktTab}','${it}',1)">+</button></div></div>`;
+                    cont.innerHTML += `
+                    <div class="item-row">
+                        <div style="display:flex; flex-direction:column;">
+                            <span style="font-weight:bold;">${it}</span>
+                            <span style="font-size:10px; color:red; cursor:pointer;" onclick="deleteItem('${it}')">ODSTRÁNIŤ</span>
+                        </div>
+                        <div class="qty-ctrl">
+                            <button class="btn-q" onclick="addToCart('${it}')">🛒</button>
+                            <button class="btn-q" onclick="changeQty('${it}',-1)">-</button>
+                            <input type="number" class="qty-val" value="${items[it]}" onchange="manualQty('${it}', this.value)">
+                            <button class="btn-q" onclick="changeQty('${it}',1)">+</button>
+                        </div>
+                    </div>`;
                 });
-                if(currentUser.role === 'manager') {
-                    cont.innerHTML += `<input type="text" id="new-it" placeholder="Názov"><button class="btn-main" onclick="addItem()">+ PRIDAŤ</button>`;
-                }
-            } else if(aktTab === 'historia') {
-                const hist = data._historia || {};
-                Object.values(hist).reverse().slice(0,10).forEach(h => {
-                    cont.innerHTML += `<div style="font-size:13px; padding:10px 0; border-bottom:1px solid #eee;"><b>${h.time}</b> - ${h.user}: ${h.msg}</div>`;
+                if(user.role === 'manager') cont.innerHTML += `<input type="text" id="new-it" placeholder="Nový názov"><button class="btn-main" onclick="addItem()">+ PRIDAŤ POLOŽKU</button>`;
+            } else {
+                const h = data._historia || {};
+                Object.values(h).reverse().slice(0,15).forEach(line => {
+                    cont.innerHTML += `<div style="font-size:12px; margin-bottom:8px; border-bottom:1px solid #eee; padding-bottom:5px;">${line}</div>`;
                 });
             }
         });
     }
 
-    function changeQty(cat, it, d) {
-        const time = new Date().toLocaleString('sk-SK');
-        db.ref(`prevadzky/${aktP}/${cat}/${it}`).transaction(c => (c || 0) + d);
-        db.ref(`prevadzky/${aktP}/_historia`).push({ time, user: currentUser.name, msg: `${d > 0 ? 'Pridané' : 'Odobrané'} ${Math.abs(d)}x ${it}` });
-        db.ref(`prevadzky/${aktP}/_lastCheck`).set(time);
+    function changeQty(it, d) {
+        db.ref(`prevadzky/${aktP}/${aktTab}/${it}`).transaction(c => (c || 0) + d);
+        logHist(`${user.name}: ${it} ${d > 0 ? '+'+d : d}`);
+    }
+
+    function manualQty(it, val) {
+        db.ref(`prevadzky/${aktP}/${aktTab}/${it}`).set(Number(val));
+        logHist(`${user.name}: Nastavené ${it} na ${val}`);
+    }
+
+    function logHist(msg) {
+        const time = new Date().toLocaleString('sk-SK', {hour:'2-digit', minute:'2-digit', day:'2-digit', month:'2-digit'});
+        db.ref(`prevadzky/${aktP}/_historia`).push(`[${time}] ${msg}`);
+        db.ref(`prevadzky/${aktP}/_last`).set(time);
     }
 
     function addItem() {
@@ -226,28 +215,53 @@
         if(n) db.ref(`prevadzky/${aktP}/${aktTab}/${n}`).set(0);
     }
 
-    // ADMIN FUNKCIE
-    function dbAddUser() {
-        const u = document.getElementById('adm-u-name').value.trim().toLowerCase();
-        const p = document.getElementById('adm-u-pass').value.trim();
-        const r = document.getElementById('adm-u-role').value;
-        if(u && p) db.ref('users/' + u).set({ pass: p, role: r });
+    function deleteItem(it) {
+        if(confirm("Zmazať "+it+"?")) db.ref(`prevadzky/${aktP}/${aktTab}/${it}`).remove();
     }
 
-    function dbAddP() {
-        const n = document.getElementById('adm-p-name').value.trim();
-        const t = document.getElementById('adm-p-type').value;
-        if(n) db.ref('prevadzky/' + n).set({ _type: t, material: { "Vrecia": 0 }, pomocky: { "Mop": 0 } });
+    /* KOŠÍK LOGIKA */
+    function addToCart(it) {
+        cart[it] = (cart[it] || 0) + 1;
+        updateCartUI();
     }
 
-    function loadUsersList() {
-        db.ref('users').on('value', snap => {
-            const ui = document.getElementById('user-list-ui');
-            ui.innerHTML = "";
-            Object.keys(snap.val() || {}).forEach(u => {
-                ui.innerHTML += `<div style="display:flex; justify-content:space-between; padding:5px 0;"><span>${u}</span><button onclick="db.ref('users/${u}').remove()" style="color:red; border:none; background:none;">✖</button></div>`;
+    function updateCartUI() {
+        const count = Object.keys(cart).length;
+        document.getElementById('cart-bar').className = count > 0 ? "" : "hidden";
+        document.getElementById('cart-count').innerText = count + " položiek";
+    }
+
+    function clearCart() { cart = {}; updateCartUI(); }
+
+    function openTransfer() {
+        const kam = prompt("Názov cieľovej prevádzky (presne):");
+        if(!kam) return;
+        
+        db.ref(`prevadzky/${kam}`).once('value', snap => {
+            if(!snap.exists()) { alert("Prevádzka neexistuje!"); return; }
+            
+            Object.keys(cart).forEach(it => {
+                const qty = cart[it];
+                // Odobrať z aktuálneho
+                db.ref(`prevadzky/${aktP}/${aktTab}/${it}`).transaction(c => (c || 0) - qty);
+                // Pridať do cieľa
+                db.ref(`prevadzky/${kam}/${aktTab}/${it}`).transaction(c => (c || 0) + qty);
             });
+            
+            logHist(`Presun do ${kam}: ${JSON.stringify(cart)}`);
+            alert("Presunuté!");
+            clearCart();
         });
+    }
+
+    function addUserPrompt() {
+        const m = prompt("Meno:"); const h = prompt("Heslo:"); const r = prompt("Rola (manager/supervisor):");
+        if(m && h) db.ref('users/'+m.toLowerCase()).set({pass:h, role:r});
+    }
+
+    function addPPrompt() {
+        const n = prompt("Názov:"); const t = prompt("Typ (sklad/prevadzka):");
+        if(n) db.ref('prevadzky/'+n).set({_type:t, material:{"Vrecia":0}, pomocky:{"Mop":0}});
     }
 
     function showView(id) {
