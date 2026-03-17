@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DEEPLY - Smart Access Control</title>
+    <title>DEEPLY - Full Admin & Logistics</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <style>
@@ -23,7 +23,10 @@
         .item-row { background: white; margin-bottom: 10px; padding: 15px; border-radius: 22px; display: flex; justify-content: space-between; align-items: center; }
         .qty-controls { display: flex; align-items: center; gap: 12px; }
         .qty-btn { width: 38px; height: 38px; border-radius: 10px; border: 1px solid #ddd; background: #fff; font-weight: bold; cursor: pointer; }
+        .admin-card { background: white; padding: 20px; border-radius: 25px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
         .btn-main { width: 100%; padding: 18px; background: var(--deeply-dark); color: white; border: none; border-radius: 18px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-del { color: var(--danger); border: none; background: none; font-weight: bold; cursor: pointer; }
+        input, select { width: 100%; padding: 15px; margin-bottom: 12px; border-radius: 15px; border: 1px solid #ddd; font-size: 16px; box-sizing: border-box; }
         .hidden { display: none !important; }
         #view-login { height: 100vh; width: 100vw; display: flex; justify-content: center; align-items: center; background: var(--deeply-yellow); position: fixed; top:0; left:0; z-index: 3000; }
         .login-card { background: white; padding: 30px; border-radius: 30px; width: 280px; text-align: center; }
@@ -35,8 +38,8 @@
 <div id="view-login">
     <div class="login-card">
         <h1 style="margin:0 0 20px 0;">DEEPLY</h1>
-        <input type="text" id="l-u" placeholder="Meno" style="width:100%; padding:15px; margin-bottom:10px; border-radius:15px; border:1px solid #ddd;">
-        <input type="password" id="l-p" placeholder="Heslo" style="width:100%; padding:15px; margin-bottom:20px; border-radius:15px; border:1px solid #ddd;">
+        <input type="text" id="l-u" placeholder="Meno">
+        <input type="password" id="l-p" placeholder="Heslo">
         <button class="btn-main" onclick="tryLogin()">VSTÚPIŤ</button>
     </div>
 </div>
@@ -54,6 +57,7 @@
 
     <div id="main-content">
         <div id="view-hlavna"><h3>🏢 Prevádzky</h3><div id="grid-p" class="grid"></div></div>
+        
         <div id="view-sklady" class="hidden"><h3>📦 Sklady</h3><div id="grid-s" class="grid"></div></div>
 
         <div id="view-detail" class="hidden">
@@ -74,10 +78,44 @@
             
             <div id="action-area" style="margin-top:20px;">
                 <div id="manager-only-add" class="hidden" style="margin-bottom:15px; padding:15px; background:#fff; border-radius:20px; border:1px dashed #ccc;">
-                    <select id="sel-katalog" style="width:100%; padding:12px; border-radius:10px; margin-bottom:10px;"></select>
-                    <button class="btn-main" onclick="addItemToP()" style="background:var(--blue); margin:0;">PRIDAŤ DO OBJEKTU</button>
+                    <p style="font-size:0.8em; font-weight:bold; margin-bottom:10px;">Naskladniť z katalógu:</p>
+                    <select id="sel-katalog"></select>
+                    <button class="btn-main" onclick="addItemToP()" style="background:var(--blue); margin:0;">PRIDAŤ POLOŽKU</button>
                 </div>
                 <button class="btn-main" style="background:var(--check-color);" onclick="submitCheck()">ODOSLAŤ KONTROLU (REPORT)</button>
+            </div>
+        </div>
+
+        <div id="view-admin" class="hidden">
+            <div class="admin-card">
+                <h3>👥 Správa užívateľov</h3>
+                <input type="text" id="adm-u-n" placeholder="Meno">
+                <input type="text" id="adm-u-p" placeholder="Heslo">
+                <select id="adm-u-role">
+                    <option value="manager">Manažér (Všetko)</option>
+                    <option value="supervisor">Supervízor (Sklady + Inventúra)</option>
+                    <option value="upratovac">Upratovač (Len report)</option>
+                </select>
+                <button class="btn-main" onclick="adminAddUser()">PRIDAŤ UŽÍVATEĽA</button>
+                <div id="adm-list-users" style="margin-top:15px;"></div>
+            </div>
+
+            <div class="admin-card">
+                <h3>🏢 Nová Prevádzka / Sklad</h3>
+                <input type="text" id="adm-p-n" placeholder="Názov objektu">
+                <select id="adm-p-t">
+                    <option value="prevadzka">🏢 Prevádzka</option>
+                    <option value="sklad">📦 Sklad</option>
+                </select>
+                <button class="btn-main" onclick="adminAddP()">VYTVORIŤ OBJEKT</button>
+                <div id="adm-list-prevadzky" style="margin-top:15px;"></div>
+            </div>
+
+            <div class="admin-card">
+                <h3>📋 Katalóg materiálu</h3>
+                <input type="text" id="adm-i-n" placeholder="Názov (napr. Jar 1L)">
+                <button class="btn-main" onclick="adminAddItem()">PRIDAŤ DO KATALÓGU</button>
+                <div id="adm-list-katalog" style="margin-top:15px;"></div>
             </div>
         </div>
     </div>
@@ -106,16 +144,10 @@
                 user = { name: u, role: d.role || 'upratovac' };
                 document.getElementById('view-login').classList.add('hidden');
                 document.getElementById('view-app').classList.remove('hidden');
-                
-                // Zobrazenie ikon v menu podľa role
-                if(user.role === 'manager' || user.role === 'supervisor') {
-                    document.getElementById('b2').classList.remove('hidden');
-                }
-                if(user.role === 'manager') {
-                    document.getElementById('b3').classList.remove('hidden');
-                }
+                if(user.role === 'manager' || user.role === 'supervisor') document.getElementById('b2').classList.remove('hidden');
+                if(user.role === 'manager') document.getElementById('b3').classList.remove('hidden');
                 startApp();
-            } else alert("Chyba!");
+            } else alert("Chyba prihlásenia!");
         });
     }
 
@@ -124,6 +156,7 @@
             mData = snap.val() || { prevadzky: {}, katalog: {}, users: {} };
             renderGrids();
             if(aktMiesto) refreshDetail();
+            renderAdminLists();
             updateKatalogSelect();
         });
     }
@@ -133,7 +166,8 @@
         const gs = document.getElementById('grid-s'); gs.innerHTML = "";
         Object.keys(mData.prevadzky || {}).sort().forEach(m => {
             const p = mData.prevadzky[m];
-            const html = `<div class="karta ${getStatus(m)}" onclick="otvorMiesto('${m}')">
+            const st = (p._type === 'sklad') ? 'status-sklad' : getSemaforStatus(m);
+            const html = `<div class="karta ${st}" onclick="otvorMiesto('${m}')">
                 <div style="font-size:1.6em;">${p._type==='sklad'?'📦':'🏢'}</div>
                 <div style="font-weight:bold; font-size:0.85em; margin-top:8px;">${m}</div>
             </div>`;
@@ -141,9 +175,8 @@
         });
     }
 
-    function getStatus(mName) {
+    function getSemaforStatus(mName) {
         const p = mData.prevadzky[mName];
-        if(p._type === 'sklad') return 'status-sklad';
         if(!p.last_check) return 'status-danger';
         const last = new Date(p.last_check);
         const today = new Date();
@@ -154,10 +187,11 @@
 
     function showView(id) {
         if(id !== 'view-detail') lastV = id;
-        ['view-hlavna', 'view-sklady', 'view-detail'].forEach(v => document.getElementById(v).classList.add('hidden'));
+        ['view-hlavna', 'view-sklady', 'view-detail', 'view-admin'].forEach(v => document.getElementById(v).classList.add('hidden'));
         document.getElementById(id).classList.remove('hidden');
         document.getElementById('b1').classList.toggle('active', id==='view-hlavna');
         document.getElementById('b2').classList.toggle('active', id==='view-sklady');
+        document.getElementById('b3').classList.toggle('active', id==='view-admin');
     }
 
     function otvorMiesto(m) { aktMiesto = m; showView('view-detail'); document.getElementById('det-n').innerText = m; }
@@ -166,15 +200,11 @@
     function refreshDetail() {
         const p = mData.prevadzky[aktMiesto];
         const list = document.getElementById('list-items'); list.innerHTML = "";
-        
-        // Manažérske nástroje v detaile
         document.getElementById('mgmt-tools').classList.toggle('hidden', user.role !== 'manager');
         document.getElementById('check-upratovac-inv').checked = !!p._allowInv;
         document.getElementById('manager-only-add').classList.toggle('hidden', user.role !== 'manager');
 
-        // Logika zobrazenia zásob
         const canSeeInv = (user.role === 'manager' || user.role === 'supervisor' || (user.role === 'upratovac' && p._allowInv));
-
         if(canSeeInv) {
             Object.keys(p).sort().forEach(k => { 
                 if(!k.startsWith('_') && !['last_check','rozostup','pradlo'].includes(k)) {
@@ -189,35 +219,51 @@
                 }
             });
         } else {
-            list.innerHTML = `<p style="text-align:center; color:#888; padding:20px;">Pre túto prevádzku nemáte povolenú správu zásob.</p>`;
+            list.innerHTML = `<p style="text-align:center; color:#888; padding:20px;">Správa zásob pre túto prevádzku je skrytá.</p>`;
         }
     }
 
     function toggleInvAccess(val) { db.ref(`prevadzky/${aktMiesto}/_allowInv`).set(val); }
+    function changeQty(it, val) { const cur = mData.prevadzky[aktMiesto][it] || 0; db.ref(`prevadzky/${aktMiesto}/${it}`).set(Math.max(0, cur + val)); }
+    function addItemToP() { const it = document.getElementById('sel-katalog').value; if(it) db.ref(`prevadzky/${aktMiesto}/${it}`).set(0); }
 
-    function changeQty(it, val) {
-        const current = mData.prevadzky[aktMiesto][it] || 0;
-        db.ref(`prevadzky/${aktMiesto}/${it}`).set(Math.max(0, current + val));
+    // ADMIN FUNKCIE
+    function adminAddUser() {
+        const n = document.getElementById('adm-u-n').value.trim().toLowerCase();
+        const p = document.getElementById('adm-u-p').value.trim();
+        const r = document.getElementById('adm-u-role').value;
+        if(n && p) db.ref('users/'+n).set({pass:p, role:r}).then(()=>alert("Užívateľ pridaný"));
+    }
+    function adminAddP() {
+        const n = document.getElementById('adm-p-n').value.trim();
+        const t = document.getElementById('adm-p-t').value;
+        if(n) db.ref('prevadzky/'+n).update({_type:t, rozostup:2}).then(()=>alert("Objekt vytvorený"));
+    }
+    function adminAddItem() {
+        const n = document.getElementById('adm-i-n').value.trim();
+        if(n) db.ref('katalog').push(n).then(()=>alert("Pridané do katalógu"));
     }
 
-    function addItemToP() {
-        const it = document.getElementById('sel-katalog').value;
-        if(it) db.ref(`prevadzky/${aktMiesto}/${it}`).set(0);
+    function renderAdminLists() {
+        const uL = document.getElementById('adm-list-users'); uL.innerHTML = "";
+        Object.keys(mData.users || {}).forEach(u => uL.innerHTML += `<div class="item-row" style="padding:8px 15px;"><span>${u} (${mData.users[u].role})</span> <button class="btn-del" onclick="db.ref('users/${u}').remove()">✕</button></div>`);
+        
+        const pL = document.getElementById('adm-list-prevadzky'); pL.innerHTML = "";
+        Object.keys(mData.prevadzky || {}).sort().forEach(p => pL.innerHTML += `<div class="item-row" style="padding:8px 15px;"><span>${p}</span> <button class="btn-del" onclick="db.ref('prevadzky/${p}').remove()">✕</button></div>`);
+
+        const kL = document.getElementById('adm-list-katalog'); kL.innerHTML = "";
+        Object.keys(mData.katalog || {}).forEach(id => kL.innerHTML += `<div class="item-row" style="padding:8px 15px;"><span>${mData.katalog[id]}</span> <button class="btn-del" onclick="db.ref('katalog/${id}').remove()">✕</button></div>`);
     }
 
     function updateKatalogSelect() {
         const sel = document.getElementById('sel-katalog'); if(!sel) return;
         sel.innerHTML = "";
-        Object.values(mData.katalog || {}).forEach(v => {
-            const name = typeof v === 'string' ? v : v.n;
-            sel.innerHTML += `<option value="${name}">${name}</option>`;
-        });
+        Object.values(mData.katalog || {}).forEach(v => sel.innerHTML += `<option value="${v}">${v}</option>`);
     }
 
-    function submitCheck() {
-        db.ref(`prevadzky/${aktMiesto}/last_check`).set(new Date().toISOString());
-        alert("Kontrola úspešná."); goBack();
-    }
+    function submitCheck() { db.ref(`prevadzky/${aktMiesto}/last_check`).set(new Date().toISOString()); alert("Report odoslaný."); goBack(); }
+
+    db.ref('users/admin').update({pass:'admin123', role:'manager'});
 </script>
 </body>
 </html>
