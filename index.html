@@ -1,12 +1,69 @@
 <!DOCTYPE html>
-<html>
+<html lang="sk">
 <head>
     <meta charset="UTF-8">
-    <title>TEST DEEPLY</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DEEPLY Sklad</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+    <style>
+        :root { --deeply-yellow: #FFD700; --deeply-dark: #1a1a1a; }
+        body { font-family: sans-serif; margin: 0; background: var(--deeply-yellow); display: flex; justify-content: center; align-items: center; height: 100vh; }
+        .login-box { background: white; padding: 30px; border-radius: 20px; width: 300px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; font-size: 16px; }
+        .btn { width: 100%; padding: 12px; background: var(--deeply-dark); color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
+        .hidden { display: none !important; }
+        #app { background: #f4f4f4; width: 100%; height: 100vh; padding: 20px; box-sizing: border-box; }
+    </style>
 </head>
-<body style="background: red; color: white; text-align: center; padding: 50px;">
-    <h1>AK TOTO VIDÍŠ, GITHUB FUNGUJE!</h1>
-    <input type="password" id="p" placeholder="Zadaj 123">
-    <button onclick="if(document.getElementById('p').value=='123') alert('OK!')">TEST</button>
+<body>
+
+<div id="view-login" class="login-box">
+    <h2>DEEPLY</h2>
+    <input type="text" id="u" placeholder="Meno (manager)">
+    <input type="password" id="p" placeholder="Heslo (123)">
+    <button class="btn" onclick="login()">VSTÚPIŤ</button>
+    <p id="err" style="color:red; font-size:12px;"></p>
+</div>
+
+<div id="view-app" class="hidden" style="width:100%; height:100vh; background:#f4f4f4; padding:20px; box-sizing:border-box; text-align:center;">
+    <h1>Sklad DEEPLY ✅</h1>
+    <p>Prihlásenie úspešné!</p>
+    <button class="btn" style="max-width:200px" onclick="location.reload()">ODHLÁSIŤ SA</button>
+</div>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyBKLGZn7_1rdSwej9ztFQH3aq3dMd0EvA4",
+        authDomain: "deeply-72541.firebaseapp.com",
+        databaseURL: "https://deeply-72541-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "deeply-72541",
+        storageBucket: "deeply-72541.firebasestorage.app",
+        appId: "1:566464602816:web:551cca96372d75d5ef8325"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    function login() {
+        const user = document.getElementById('u').value.trim().toLowerCase();
+        const pass = document.getElementById('p').value;
+        const err = document.getElementById('err');
+
+        err.innerText = "Pripájam...";
+
+        // Hľadáme heslo priamo v databáze pod /users/manager
+        db.ref('users/' + user).once('value').then(snap => {
+            if (snap.exists() && String(snap.val()) === String(pass)) {
+                document.getElementById('view-login').classList.add('hidden');
+                document.getElementById('view-app').classList.remove('hidden');
+                document.body.style.background = "#f4f4f4";
+            } else {
+                err.innerText = "Nesprávne údaje.";
+            }
+        }).catch(e => {
+            err.innerText = "Chyba: " + e.message;
+        });
+    }
+</script>
 </body>
 </html>
