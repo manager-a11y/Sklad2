@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DEEPLY - Stabilná Verzia</title>
+    <title>DEEPLY - Full System</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <style>
-        :root { --deeply-yellow: #FFD700; --deeply-dark: #1a1a1a; --check-color: #27ae60; --bg: #f4f4f4; --danger: #e74c3c; --warning: #f39c12; }
+        :root { --deeply-yellow: #FFD700; --deeply-dark: #1a1a1a; --check-color: #27ae60; --bg: #f4f4f4; --danger: #e74c3c; --warning: #f39c12; --blue: #3498db; }
         body { font-family: -apple-system, sans-serif; margin: 0; background: var(--bg); color: var(--deeply-dark); }
         header { position: sticky; top: 0; background: var(--deeply-yellow); padding: 15px; display: flex; justify-content: space-between; align-items: center; z-index: 1000; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .logo { font-weight: 900; font-size: 1.3em; }
+        .logo { font-weight: 900; font-size: 1.5em; cursor: pointer; letter-spacing: -1px; }
         .nav-btn { background: rgba(0,0,0,0.05); border: none; padding: 10px; border-radius: 12px; font-weight: bold; cursor: pointer; min-width: 40px; }
         .nav-btn.active { background: var(--deeply-dark); color: white; }
         #main-content { padding: 15px; padding-bottom: 100px; }
@@ -19,17 +19,22 @@
         .status-ok { border-color: var(--check-color); }
         .status-warning { border-color: var(--warning); }
         .status-danger { border-color: var(--danger); }
-        .status-sklad { border-color: #ddd; background: #f9f9f9; }
-        .tab-wrapper { display: flex; background: #e0e0e0; border-radius: 15px; padding: 4px; margin-bottom: 20px; }
-        .tab-btn { flex: 1; padding: 12px; border: none; border-radius: 12px; font-weight: bold; background: none; color: #666; font-size: 0.8em; }
-        .tab-btn.active { background: white; color: var(--deeply-dark); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        .item-row { background: white; margin-bottom: 10px; padding: 15px; border-radius: 20px; display: flex; justify-content: space-between; align-items: center; font-size: 0.9em; }
+        .status-sklad { border-color: var(--blue); background: #f0f7ff; }
+        .admin-section { background: white; padding: 20px; border-radius: 25px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .list-item-admin { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #eee; font-size: 0.9em; }
+        .badge { font-size: 0.7em; padding: 3px 8px; border-radius: 10px; background: #eee; margin-left: 5px; }
         .btn-main { width: 100%; padding: 18px; background: var(--deeply-dark); color: white; border: none; border-radius: 18px; font-weight: bold; cursor: pointer; font-size: 1em; margin-top: 10px; }
+        .btn-del { color: var(--danger); border: none; background: none; font-weight: bold; cursor: pointer; }
         input, select { width: 100%; padding: 15px; margin-bottom: 12px; border-radius: 15px; border: 1px solid #ddd; font-size: 16px; box-sizing: border-box; }
-        .admin-section { background: white; padding: 20px; border-radius: 25px; margin-bottom: 20px; }
         .hidden { display: none !important; }
         #view-login { height: 100vh; width: 100vw; display: flex; justify-content: center; align-items: center; background: var(--deeply-yellow); position: fixed; top:0; left:0; z-index: 3000; }
         .login-card { background: white; padding: 30px; border-radius: 30px; width: 280px; text-align: center; }
+        .tab-wrapper { display: flex; background: #e0e0e0; border-radius: 15px; padding: 4px; margin-bottom: 20px; }
+        .tab-btn { flex: 1; padding: 12px; border: none; border-radius: 12px; font-weight: bold; background: none; color: #666; font-size: 0.8em; }
+        .tab-btn.active { background: white; color: var(--deeply-dark); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .item-row { background: white; margin-bottom: 10px; padding: 15px; border-radius: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .qty-controls { display: flex; align-items: center; gap: 10px; }
+        .qty-btn { width: 35px; height: 35px; border-radius: 10px; border: 1px solid #ddd; background: white; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -45,7 +50,7 @@
 
 <div id="view-app" class="hidden">
     <header>
-        <div class="logo">DEEPLY</div>
+        <div class="logo" onclick="showView('view-hlavna')">DEEPLY</div>
         <div style="display:flex; gap:10px;">
             <button id="b1" class="nav-btn active" onclick="showView('view-hlavna')">🏠</button>
             <button id="b3" class="nav-btn hidden" onclick="showView('view-admin')">⚙️</button>
@@ -64,51 +69,69 @@
                 <h2 id="det-n" style="margin:0; font-size: 1.1em; text-align:center;">-</h2>
                 <div style="width:30px;"></div>
             </div>
+            
             <div class="tab-wrapper">
-                <button id="tab-zasoby" class="tab-btn active" onclick="switchTab('zasoby')">📦 ZÁSOBY</button>
+                <button id="tab-zasoby" class="tab-btn active" onclick="switchTab('zasoby')">📦 ZÁSOBY / SKLAD</button>
                 <button id="tab-checklist" class="tab-btn" onclick="switchTab('checklist')">✅ KONTROLA</button>
             </div>
+
             <div id="content-zasoby">
                 <div id="list-items"></div>
-                <div style="margin-top:20px; padding:15px; background:#fff; border-radius:20px;">
-                    <p style="font-weight:bold; margin-top:0;">Pridať tovar do objektu:</p>
+                <div style="margin-top:20px; padding:15px; background:#fff; border-radius:20px; border: 1px dashed #ccc;">
+                    <p style="font-weight:bold; margin:0 0 10px 0; font-size: 0.8em;">🛒 Naskladniť novú položku z katalógu:</p>
                     <select id="sel-katalog"></select>
-                    <button class="btn-main" onclick="addItemToP()">PRIDAŤ</button>
+                    <button class="btn-main" onclick="addItemToP()" style="padding: 12px; font-size: 0.9em; background: var(--blue);">PRIDAŤ DO OBJEKTU</button>
                 </div>
             </div>
+
             <div id="content-checklist" class="hidden">
                 <div id="pradlo-ui" class="hidden" style="padding:20px; background:white; border-radius:20px; text-align:center; margin-bottom:15px;">
-                    <p style="font-weight:bold;">🧺 Zobrané špinavé prádlo?</p>
+                    <p style="font-weight:bold;">🧺 Stav prádla</p>
                     <div style="display:flex; gap:10px;">
-                        <button id="p-ano" class="btn-main" style="background:#eee; color:black;" onclick="setPradloTmp(true)">ÁNO</button>
-                        <button id="p-nie" class="btn-main" style="background:#eee; color:black;" onclick="setPradloTmp(false)">NIE</button>
+                        <button id="p-ano" class="btn-main" style="background:#eee; color:black;" onclick="setPradloTmp(true)">VYMENENÉ</button>
+                        <button id="p-nie" class="btn-main" style="background:#eee; color:black;" onclick="setPradloTmp(false)">NETREBA</button>
                     </div>
                 </div>
-                <button class="btn-main" style="background:var(--check-color);" onclick="submitCheck()">ODOSLAŤ KONTROLU</button>
+                <button class="btn-main" style="background:var(--check-color);" onclick="submitCheck()">ODOSLAŤ REPORT</button>
             </div>
         </div>
 
         <div id="view-admin" class="hidden">
             <div class="admin-section">
-                <h3>👥 Užívatelia</h3>
+                <h3>👥 Správa užívateľov</h3>
                 <input type="text" id="adm-u-n" placeholder="Meno">
                 <input type="text" id="adm-u-p" placeholder="Heslo">
-                <button class="btn-main" onclick="adminAddUser()">PRIDAŤ UŽÍVATEĽA</button>
+                <select id="adm-u-role">
+                    <option value="manager">Manažment (Admin)</option>
+                    <option value="supervisor">Supervízor</option>
+                    <option value="upratovac">Upratovač</option>
+                </select>
+                <button class="btn-main" onclick="adminAddUser()">VYTVORIŤ UŽÍVATEĽA</button>
+                <div id="adm-list-users" style="margin-top:15px;"></div>
             </div>
+
             <div class="admin-section">
-                <h3>🏢 Nový objekt</h3>
-                <input type="text" id="adm-p-n" placeholder="Názov (bez bodiek)">
-                <select id="adm-p-t"><option value="prevadzka">Prevádzka</option><option value="sklad">Sklad</option></select>
-                <button class="btn-main" onclick="adminAddP()">VYTVORIŤ</button>
+                <h3>🏢 Správa objektov a skladov</h3>
+                <input type="text" id="adm-p-n" placeholder="Názov (napr. Rideta)">
+                <select id="adm-p-t">
+                    <option value="prevadzka">Prevádzka (Kontrolný bod)</option>
+                    <option value="sklad">Centrálny sklad</option>
+                </select>
+                <button class="btn-main" onclick="adminAddP()">VYTVORIŤ OBJEKT</button>
+                <div id="adm-list-prevadzky" style="margin-top:15px;"></div>
             </div>
+
             <div class="admin-section">
-                <h3>📦 Katalóg tovaru</h3>
-                <input type="text" id="adm-i-n" placeholder="Názov tovaru">
+                <h3>📦 Globálny katalóg materiálu</h3>
+                <input type="text" id="adm-i-n" placeholder="Názov (napr. Jar 1L)">
+                <select id="adm-i-c">
+                    <option value="Chémia">Čistiaca chémia</option>
+                    <option value="Hygiena">Hygienické potreby</option>
+                    <option value="Pomôcky">Náradie a pomôcky</option>
+                    <option value="Ostatné">Ostatné</option>
+                </select>
                 <button class="btn-main" onclick="adminAddItem()">PRIDAŤ DO KATALÓGU</button>
-            </div>
-            <div id="p-list-container" class="admin-section">
-                <h3>📋 Správa existujúcich</h3>
-                <div id="admin-p-list-items"></div>
+                <div id="adm-list-katalog" style="margin-top:15px;"></div>
             </div>
         </div>
     </div>
@@ -134,12 +157,12 @@
         db.ref('users/'+u).once('value', s => {
             const d = s.val();
             if(d && String(d.pass) === String(p)) {
-                user = { name: u, role: d.role || 'manager' };
+                user = { name: u, role: d.role || 'upratovac' };
                 document.getElementById('view-login').classList.add('hidden');
                 document.getElementById('view-app').classList.remove('hidden');
-                document.getElementById('b3').classList.remove('hidden'); // Admin vždy prístupný pre test
+                if(user.role === 'manager') document.getElementById('b3').classList.remove('hidden');
                 startApp();
-            } else alert("Chyba mena alebo hesla.");
+            } else alert("Neplatné údaje.");
         });
     }
 
@@ -148,7 +171,7 @@
             mData = snap.val() || { prevadzky: {}, katalog: {}, users: {} };
             renderDashboard();
             if(aktMiesto) refreshDetail();
-            renderAdminList();
+            renderAdminLists();
             updateKatalogSelect();
         });
     }
@@ -192,9 +215,15 @@
         const list = document.getElementById('list-items'); list.innerHTML = "";
         Object.keys(p).sort().forEach(k => { 
             if(!k.startsWith('_') && !['last_check','rozostup','pradlo','p_limit','p_count','_type'].includes(k)) {
-                list.innerHTML += `<div class="item-row"><span>${k}</span><div style="display:flex;gap:10px;align-items:center;">
-                <button onclick="changeQty('${k}', -1)">-</button><b>${p[k]}</b><button onclick="changeQty('${k}', 1)">+</button>
-                <button onclick="removeItemFromP('${k}')" style="color:red;border:none;background:none;">✕</button></div></div>`;
+                list.innerHTML += `<div class="item-row">
+                    <span>${k}</span>
+                    <div class="qty-controls">
+                        <button class="qty-btn" onclick="changeQty('${k}', -1)">-</button>
+                        <b style="min-width:20px; text-align:center;">${p[k]}</b>
+                        <button class="qty-btn" onclick="changeQty('${k}', 1)">+</button>
+                        <button onclick="removeItemFromP('${k}')" class="btn-del" style="margin-left:10px;">✕</button>
+                    </div>
+                </div>`;
             }
         });
     }
@@ -209,47 +238,69 @@
         if(it) db.ref(`prevadzky/${aktMiesto}/${it}`).set(0);
     }
 
-    function removeItemFromP(it) { if(confirm('Zmazať '+it+'?')) db.ref(`prevadzky/${aktMiesto}/${it}`).remove(); }
+    function removeItemFromP(it) { if(confirm('Zmazať položku '+it+' z tohto objektu?')) db.ref(`prevadzky/${aktMiesto}/${it}`).remove(); }
 
+    // --- ADMIN FUNKCIE ---
     function adminAddUser() {
         const n = document.getElementById('adm-u-n').value.trim().toLowerCase();
         const p = document.getElementById('adm-u-p').value.trim();
-        if(n && p) db.ref('users/'+n).set({pass:p, role:'manager'}).then(()=>alert('Užívateľ pridaný'));
+        const r = document.getElementById('adm-u-role').value;
+        if(n && p) db.ref('users/'+n).set({pass:p, role:r}).then(()=> { alert('Hotovo'); document.getElementById('adm-u-n').value=''; document.getElementById('adm-u-p').value=''; });
     }
 
     function adminAddP() {
         const n = document.getElementById('adm-p-n').value.trim();
         const t = document.getElementById('adm-p-t').value;
-        if(n) db.ref('prevadzky/'+n).update({_type:t, rozostup:2}).then(()=>alert('Vytvorené'));
+        if(n) db.ref('prevadzky/'+n).update({_type:t, rozostup:2}).then(()=> { alert('Vytvorené'); document.getElementById('adm-p-n').value=''; });
     }
 
     function adminAddItem() {
         const n = document.getElementById('adm-i-n').value.trim();
-        if(n) db.ref('katalog').push(n).then(()=>alert('Pridané'));
+        const c = document.getElementById('adm-i-c').value;
+        if(n) db.ref('katalog').push({n: n, c: c}).then(()=> { alert('Pridané'); document.getElementById('adm-i-n').value=''; });
+    }
+
+    function renderAdminLists() {
+        // Užívatelia
+        const uL = document.getElementById('adm-list-users'); uL.innerHTML = "<b>Existujúci užívatelia:</b>";
+        Object.keys(mData.users || {}).forEach(u => {
+            const r = mData.users[u].role;
+            uL.innerHTML += `<div class="list-item-admin"><span>${u} <span class="badge">${r}</span></span> <button onclick="db.ref('users/${u}').remove()" class="btn-del">ZMAZAŤ</button></div>`;
+        });
+        // Objekty
+        const pL = document.getElementById('adm-list-prevadzky'); pL.innerHTML = "<b>Zoznam prevádzok/skladov:</b>";
+        Object.keys(mData.prevadzky || {}).forEach(p => {
+            const t = mData.prevadzky[p]._type;
+            pL.innerHTML += `<div class="list-item-admin"><span>${p} <span class="badge">${t}</span></span> <button onclick="db.ref('prevadzky/${p}').remove()" class="btn-del">ZMAZAŤ</button></div>`;
+        });
+        // Katalóg
+        const kL = document.getElementById('adm-list-katalog'); kL.innerHTML = "<b>Všetok materiál:</b>";
+        Object.keys(mData.katalog || {}).forEach(id => {
+            const item = mData.katalog[id];
+            const display = typeof item === 'string' ? item : `${item.n}`;
+            const cat = item.c || 'Nezaradené';
+            kL.innerHTML += `<div class="list-item-admin"><span>${display} <span class="badge">${cat}</span></span> <button onclick="db.ref('katalog/${id}').remove()" class="btn-del">ZMAZAŤ</button></div>`;
+        });
     }
 
     function updateKatalogSelect() {
-        const sel = document.getElementById('sel-katalog'); sel.innerHTML = "";
+        const sel = document.getElementById('sel-katalog'); if(!sel) return;
+        sel.innerHTML = "";
         const kat = mData.katalog || {};
-        Object.values(kat).sort().forEach(v => sel.innerHTML += `<option value="${v}">${v}</option>`);
+        Object.keys(kat).forEach(id => {
+            const val = typeof kat[id] === 'string' ? kat[id] : kat[id].n;
+            sel.innerHTML += `<option value="${val}">${val}</option>`;
+        });
     }
 
     function setPradloTmp(v) { tmpPradlo = v; document.getElementById('p-ano').style.background = v ? 'var(--check-color)' : '#eee'; document.getElementById('p-nie').style.background = !v ? 'var(--danger)' : '#eee'; }
 
     function submitCheck() {
         const p = mData.prevadzky[aktMiesto];
-        if(p.pradlo && tmpPradlo === null) return alert("Označte prádlo!");
+        if(p.pradlo && tmpPradlo === null) return alert("Označte stav prádla!");
         db.ref(`prevadzky/${aktMiesto}/last_check`).set(new Date().toISOString());
         if(p.pradlo) db.ref(`prevadzky/${aktMiesto}/p_count`).set(tmpPradlo ? 0 : (p.p_count || 0) + 1);
-        alert("OK"); showView('view-hlavna');
-    }
-
-    function renderAdminList() {
-        const cont = document.getElementById('admin-p-list-items'); if(!cont) return;
-        cont.innerHTML = "";
-        Object.keys(mData.prevadzky || {}).forEach(p => {
-            cont.innerHTML += `<div style="padding:10px; border-bottom:1px solid #eee; display:flex; justify-content:space-between;">${p} <button onclick="db.ref('prevadzky/${p}').remove()" style="color:red;border:none;background:none;">ZMAZAŤ</button></div>`;
-        });
+        alert("Report odoslaný"); showView('view-hlavna');
     }
 
     function switchTab(t) {
@@ -259,7 +310,7 @@
         document.getElementById('tab-checklist').classList.toggle('active', t==='checklist');
     }
 
-    // Zabezpečenie admina pri štarte
+    // Počiatočný admin
     db.ref('users/admin').update({pass:'admin123', role:'manager'});
 </script>
 </body>
