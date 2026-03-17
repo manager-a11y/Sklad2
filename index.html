@@ -52,22 +52,35 @@
         <div id="view-detail" class="hidden">
             <button onclick="showView('view-list')" style="background:none; border:none; font-weight:bold; cursor:pointer; margin-bottom:15px;">← SPÄŤ</button>
             <h2 id="det-title">-</h2>
-            <div class="card"><div id="det-items"></div></div>
+            <div class="card">
+                <div id="det-items"></div>
+                <div id="manager-tools" class="hidden" style="margin-top:15px; border-top:1px solid #eee; padding-top:15px;">
+                    <input type="text" id="new-it-name" placeholder="Názov novej položky">
+                    <button class="btn" onclick="dbAddItem()">PRIDAŤ POLOŽKU</button>
+                </div>
+            </div>
         </div>
 
         <div id="view-admin" class="hidden">
             <button onclick="showView('view-list')" style="background:none; border:none; font-weight:bold; cursor:pointer; margin-bottom:15px;">← SPÄŤ</button>
             <h2>Administrácia</h2>
             <div class="card">
-                <h4>Správa zamestnancov</h4>
-                <input type="text" id="adm-u-name" placeholder="Meno">
+                <h4>Správa užívateľov</h4>
+                <input type="text" id="adm-u-name" placeholder="Meno (napr. partner)">
                 <input type="text" id="adm-u-pass" placeholder="Heslo">
                 <select id="adm-u-role">
                     <option value="supervisor">Supervisor</option>
                     <option value="upratovac">Upratovač</option>
+                    <option value="manager">Manager</option>
                 </select>
-                <button class="btn" onclick="dbAddUser()">PRIDAŤ ZAMESTNANCA</button>
+                <button class="btn" onclick="dbAddUser()">VYTVORIŤ UŽÍVATEĽA</button>
                 <div id="user-list-ui" style="margin-top:20px;"></div>
+            </div>
+            
+            <div class="card">
+                <h4>Nová prevádzka</h4>
+                <input type="text" id="adm-p-name" placeholder="Názov skladu">
+                <button class="btn" onclick="dbAddP()">VYTVORIŤ SKLAD</button>
             </div>
         </div>
     </div>
@@ -86,6 +99,7 @@
     const db = firebase.database();
 
     let currentUser = null;
+    let aktP = "";
 
     function tryLogin() {
         const u = document.getElementById('l-u').value.trim().toLowerCase();
@@ -97,8 +111,11 @@
                 document.getElementById('view-login').classList.add('hidden');
                 document.getElementById('view-app').classList.remove('hidden');
                 document.getElementById('user-tag').innerText = d.role.toUpperCase();
+                
+                // Manager vidí Admin tlačidlo a nástroje v sklade
                 if(d.role === 'manager') {
                     document.getElementById('admin-btn').classList.remove('hidden');
+                    document.getElementById('manager-tools').classList.remove('hidden');
                     loadUsersList();
                 }
                 initApp();
@@ -121,6 +138,7 @@
     }
 
     function openP(p) {
+        aktP = p;
         showView('view-detail');
         document.getElementById('det-title').innerText = p;
         db.ref('prevadzky/' + p).on('value', snap => {
@@ -128,21 +146,25 @@
             const cont = document.getElementById('det-items');
             cont.innerHTML = "";
             Object.keys(items).filter(k => !k.startsWith('_')).forEach(it => {
-                cont.innerHTML += `<div class="item-row"><span>${it}</span><div class="qty-ctrl"><button class="btn-qty" onclick="changeQty('${p}','${it}',-1)">-</button><b>${items[it]}</b><button class="btn-qty" onclick="changeQty('${p}','${it}',1)">+</button></div></div>`;
+                cont.innerHTML += `<div class="item-row"><span>${it}</span><div class="qty-ctrl"><button class="btn-qty" onclick="changeQty('${it}',-1)">-</button><b>${items[it]}</b><button class="btn-qty" onclick="changeQty('${it}',1)">+</button></div></div>`;
             });
         });
     }
 
-    function changeQty(p, it, d) { db.ref(`prevadzky/${p}/${it}`).transaction(c => (c || 0) + d); }
+    function changeQty(it, d) { db.ref(`prevadzky/${aktP}/${it}`).transaction(c => (c || 0) + d); }
 
     function loadUsersList() {
         db.ref('users').on('value', snap => {
             const cont = document.getElementById('user-list-ui');
-            cont.innerHTML = "<strong>Aktuálni zamestnanci:</strong><br>";
+            cont.innerHTML = "<strong>Zoznam užívateľov:</strong><br>";
             const users = snap.val() || {};
             Object.keys(users).forEach(u => {
-                if(u === 'manager') return;
-                cont.innerHTML += `<div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #eee;"><span>${u} (${users[u].role})</span><button onclick="dbDelUser('${u}')" style="color:red; border:none; background:none; cursor:pointer;">✖ Vymazať</button></div>`;
+                // Hlavný manager sa nedá vymazať, ostatní áno
+                const canDel = u !== 'manager' && u !== currentUser.name;
+                cont.innerHTML += `<div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #eee;">
+                    <span>${u} (${users[u].role})</span>
+                    ${canDel ? `<button onclick="dbDelUser('${u}')" style="color:red; border:none; background:none; cursor:pointer;">✖ Vymazať</button>` : ''}
+                </div>`;
             });
         });
     }
@@ -158,6 +180,8 @@
     }
 
     function dbDelUser(u) { if(confirm("Naozaj vymazať?")) db.ref('users/' + u).remove(); }
+    function dbAddP() { const n = document.getElementById('adm-p-name').value.trim(); if(n) db.ref('prevadzky/' + n).set({ _init: true }); }
+    function dbAddItem() { const n = document.getElementById('new-it-name').value.trim(); if(n) db.ref(`prevadzky/${aktP}/${n}`).set(0); }
     function showView(id) { ['view-list', 'view-detail', 'view-admin'].forEach(v => document.getElementById(v).classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); }
 </script>
 </body>
