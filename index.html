@@ -149,12 +149,21 @@
 
     // LOGIN LOGIKA
     function handleLogin() {
-        const email = document.getElementById('login-email').value;
-        const pass = document.getElementById('login-pass').value;
-        auth.signInWithEmailAndPassword(email, pass).catch(err => {
-            document.getElementById('login-error').innerText = "Nesprávne údaje.";
+    const email = document.getElementById('login-email').value.trim();
+    const pass = document.getElementById('login-pass').value;
+    const errorEl = document.getElementById('login-error');
+
+    console.log("Pokus o prihlásenie:", email);
+
+    auth.signInWithEmailAndPassword(email, pass)
+        .then((userCredential) => {
+            console.log("Prihlásenie úspešné!", userCredential.user);
+        })
+        .catch((error) => {
+            console.error("Detail chyby z Firebase:", error.code, error.message);
+            errorEl.innerText = "Chyba: " + error.message;
         });
-    }
+}
 
     function handleLogout() { auth.signOut(); location.reload(); }
 
