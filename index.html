@@ -2,66 +2,11 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DEEPLY Sklad</title>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
-    <style>
-        body { font-family: sans-serif; background: #FFD700; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .box { background: white; padding: 30px; border-radius: 20px; text-align: center; box-shadow: 0 10px 20px rgba(0,0,0,0.1); width: 300px; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; background: #1a1a1a; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        .hidden { display: none !important; }
-    </style>
+    <title>TEST DEEPLY</title>
 </head>
-<body>
-
-<div id="login-screen" class="box">
-    <h2>DEEPLY LOGIN</h2>
-    <input type="text" id="user" placeholder="Meno (manager)">
-    <input type="password" id="pass" placeholder="Heslo">
-    <button onclick="prihlasit()">VSTÚPIŤ</button>
-    <p id="error" style="color:red; font-size: 12px;"></p>
-</div>
-
-<div id="app-screen" class="hidden" style="background: white; padding: 20px; border-radius: 20px;">
-    <h1>Vitaj v sklade! ✅</h1>
-    <p>Ak toto vidíš, spojenie s databázou funguje.</p>
-    <button onclick="location.reload()">Odhlásiť</button>
-</div>
-
-<script>
-    // TVOJA NOVÁ KONFIGURÁCIA (72541)
-    const firebaseConfig = {
-        apiKey: "AIzaSyBKLGZn7_1rdSwej9ztFQH3aq3dMd0EvA4",
-        authDomain: "deeply-72541.firebaseapp.com",
-        databaseURL: "https://deeply-72541-default-rtdb.europe-west1.firebasedatabase.app",
-        projectId: "deeply-72541",
-        storageBucket: "deeply-72541.firebasestorage.app",
-        appId: "1:566464602816:web:551cca96372d75d5ef8325"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-
-    function prihlasit() {
-        const u = document.getElementById('user').value.trim().toLowerCase();
-        const p = document.getElementById('pass').value;
-        const err = document.getElementById('error');
-
-        // Pozrieme sa priamo do databázy na cestu /users/meno
-        db.ref('users/' + u).once('value').then(snap => {
-            if (snap.exists() && snap.val() === p) {
-                document.getElementById('login-screen').classList.add('hidden');
-                document.getElementById('app-screen').classList.remove('hidden');
-                document.body.style.background = "#f4f4f4";
-            } else {
-                err.innerText = "Nesprávne meno alebo heslo.";
-            }
-        }).catch(e => {
-            err.innerText = "Chyba databázy: " + e.message;
-            console.error(e);
-        });
-    }
-</script>
+<body style="background: red; color: white; text-align: center; padding: 50px;">
+    <h1>AK TOTO VIDÍŠ, GITHUB FUNGUJE!</h1>
+    <input type="password" id="p" placeholder="Zadaj 123">
+    <button onclick="if(document.getElementById('p').value=='123') alert('OK!')">TEST</button>
 </body>
 </html>
