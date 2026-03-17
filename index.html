@@ -1,370 +1,66 @@
 <!DOCTYPE html>
-<html lang="sk">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DEEPLY Sklad</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <style>
-        :root { --deeply-yellow: #FFD700; --deeply-dark: #1a1a1a; --bg: #f4f4f4; --check-color: #27ae60; --danger: #e74c3c; }
-        body { font-family: sans-serif; margin: 0; background: var(--bg); -webkit-tap-highlight-color: transparent; }
-        
-        /* LOGIN VIEW */
-        #view-login { height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; background: var(--deeply-yellow); box-sizing: border-box; }
-        .login-box { background: white; padding: 30px; border-radius: 20px; width: 100%; max-width: 350px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; }
-        
-        /* APP LAYOUT */
-        header { position: sticky; top: 0; background: var(--deeply-yellow); padding: 15px; display: flex; justify-content: space-between; align-items: center; z-index: 1000; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .nav-btn { background: rgba(0,0,0,0.05); border: none; padding: 10px; border-radius: 10px; font-weight: bold; cursor: pointer; }
-        .nav-btn.active { background: var(--deeply-dark); color: white; }
-        #main-content { padding: 15px; padding-bottom: 120px; }
-        
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .karta { background: white; padding: 20px; border-radius: 18px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); font-weight: bold; cursor: pointer; }
-        
+        body { font-family: sans-serif; background: #FFD700; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .box { background: white; padding: 30px; border-radius: 20px; text-align: center; box-shadow: 0 10px 20px rgba(0,0,0,0.1); width: 300px; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: #1a1a1a; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
         .hidden { display: none !important; }
-        input, select { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #ddd; font-size: 16px; box-sizing: border-box; }
-        .btn-main { width: 100%; padding: 15px; background: var(--deeply-dark); color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; }
-        
-        .item-row { background: white; margin-bottom: 10px; padding: 15px; border-radius: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
-        .qty-btns { display: flex; gap: 8px; margin-top: 10px; }
-        .btn-q { flex: 1; padding: 10px; border: none; background: #eee; border-radius: 8px; font-weight: bold; cursor: pointer; }
-
-        .tab-wrapper { display: flex; background: #ddd; border-radius: 12px; padding: 4px; margin-bottom: 15px; }
-        .tab-btn { flex: 1; padding: 10px; border: none; border-radius: 10px; font-weight: bold; background: none; font-size: 0.75em; cursor: pointer; }
-        .tab-btn.active { background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        
-        .check-item { display: flex; align-items: center; background: white; padding: 15px; border-radius: 12px; margin-bottom: 8px; gap: 10px; border-left: 5px solid #ccc; cursor: pointer; }
-        .check-item.done { border-left-color: var(--check-color); background: #f0fff4; }
-        .check-item.done::after { content: '✓'; margin-left: auto; color: var(--check-color); font-weight: bold; }
-        
-        .kosik-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--deeply-dark); color: white; padding: 20px; z-index: 2000; border-top-left-radius: 20px; border-top-right-radius: 20px; }
     </style>
 </head>
 <body>
 
-<div id="view-login">
-    <div class="login-box">
-        <h1 style="margin-top:0; letter-spacing: -1px;">DEEPLY</h1>
-        <p style="font-size: 0.8em; color: #666; margin-bottom: 20px;">Skladový a kontrolný systém</p>
-        <input type="text" id="l-user" placeholder="Užívateľské meno">
-        <input type="password" id="l-pass" placeholder="Heslo">
-        <button class="btn-main" onclick="tryLogin()">PRIHLÁSIŤ SA</button>
-        <p id="l-err" style="color:red; font-size:0.8em; margin-top:15px; font-weight: bold;"></p>
-    </div>
+<div id="login-screen" class="box">
+    <h2>DEEPLY LOGIN</h2>
+    <input type="text" id="user" placeholder="Meno (manager)">
+    <input type="password" id="pass" placeholder="Heslo">
+    <button onclick="prihlasit()">VSTÚPIŤ</button>
+    <p id="error" style="color:red; font-size: 12px;"></p>
 </div>
 
-<div id="view-app" class="hidden">
-    <header>
-        <div style="font-weight:900; font-size: 1.2em;">DEEPLY</div>
-        <div style="display:flex; gap:8px;">
-            <button id="b1" class="nav-btn active" onclick="showView('view-hlavna')">🏠</button>
-            <button id="b2" class="nav-btn" onclick="showView('view-history')">📜</button>
-            <button id="b3" class="nav-btn admin-only hidden" onclick="showView('view-admin')">⚙️</button>
-            <button class="nav-btn" onclick="location.reload()">🚪</button>
-        </div>
-    </header>
-
-    <div id="main-content">
-        <div id="view-hlavna">
-            <h4 style="color:#666; font-size:0.75em; text-transform:uppercase; margin-bottom: 15px;">Moje miesta</h4>
-            <div id="grid-p" class="grid"></div>
-        </div>
-
-        <div id="view-detail" class="hidden">
-            <button onclick="showView('view-hlavna')" style="border:none; background:none; font-weight:bold; margin-bottom:15px; color: #666;">← SPÄŤ NA ZOZNAM</button>
-            <h2 id="det-title" style="margin:0 0 20px 0; font-size: 1.8em;">-</h2>
-            
-            <div class="tab-wrapper">
-                <button id="t-zas" class="tab-btn active" onclick="switchTab('zasoby')">ZÁSOBY</button>
-                <button id="t-chk" class="tab-btn" onclick="switchTab('checklist')">KONTROLA</button>
-                <button id="t-log" class="tab-btn" onclick="switchTab('logy')">LOGY</button>
-            </div>
-
-            <div id="c-zasoby">
-                <div id="list-items"></div>
-            </div>
-
-            <div id="c-checklist" class="hidden">
-                <div id="list-check"></div>
-            </div>
-
-            <div id="c-logy" class="hidden">
-                <h4 style="font-size: 0.8em; color: #666;">História kontrol</h4>
-                <div id="list-logs"></div>
-            </div>
-        </div>
-
-        <div id="view-history" class="hidden">
-            <h3>Pohyby tovaru</h3>
-            <div id="glob-hist"></div>
-        </div>
-
-        <div id="view-admin" class="hidden">
-            <h3>Správa systému</h3>
-            <div style="background:white; padding:20px; border-radius:15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
-                <label style="font-size: 0.8em; font-weight: bold;">Nová prevádzka / auto</label>
-                <input type="text" id="new-p" placeholder="Názov (napr. Sklad Nitra)">
-                <button class="btn-main" onclick="addP()">VYTVORIŤ</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div id="kosik-bar" class="kosik-bar hidden">
-    <div id="kosik-info" style="margin-bottom:12px; font-size: 0.9em;"></div>
-    <div style="display:flex; gap:10px;">
-        <select id="k-kam" style="margin:0; flex: 2;"></select>
-        <button onclick="potvrdPohyb()" style="background:var(--deeply-yellow); border:none; padding:12px; border-radius:10px; font-weight:bold; flex: 1; color: black;">POTVRDIŤ</button>
-        <button onclick="zrusPohyb()" style="background:none; border:1px solid white; color:white; border-radius:10px; padding: 0 15px;">✕</button>
-    </div>
+<div id="app-screen" class="hidden" style="background: white; padding: 20px; border-radius: 20px;">
+    <h1>Vitaj v sklade! ✅</h1>
+    <p>Ak toto vidíš, spojenie s databázou funguje.</p>
+    <button onclick="location.reload()">Odhlásiť</button>
 </div>
 
 <script>
-    // AKTUALIZOVANÁ KONFIGURÁCIA (72541)
+    // TVOJA NOVÁ KONFIGURÁCIA (72541)
     const firebaseConfig = {
         apiKey: "AIzaSyBKLGZn7_1rdSwej9ztFQH3aq3dMd0EvA4",
         authDomain: "deeply-72541.firebaseapp.com",
         databaseURL: "https://deeply-72541-default-rtdb.europe-west1.firebasedatabase.app",
         projectId: "deeply-72541",
         storageBucket: "deeply-72541.firebasestorage.app",
-        messagingSenderId: "566464602816",
         appId: "1:566464602816:web:551cca96372d75d5ef8325"
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    let userRole = ""; 
-    let aktP = ""; 
-    let mData = {}; 
-    let kosik = {};
+    function prihlasit() {
+        const u = document.getElementById('user').value.trim().toLowerCase();
+        const p = document.getElementById('pass').value;
+        const err = document.getElementById('error');
 
-    // LOGIN LOGIKA
-    function tryLogin() {
-        const u = document.getElementById('l-user').value.toLowerCase().trim();
-        const p = document.getElementById('l-pass').value;
-        const err = document.getElementById('l-err');
-        
-        if(!u || !p) { err.innerText = "Vyplň meno a heslo."; return; }
-
-        db.ref('users/' + u).once('value', snap => {
-            const savedPass = snap.val();
-            if(savedPass && String(savedPass) === String(p)) {
-                userRole = u;
-                document.getElementById('view-login').classList.add('hidden');
-                document.getElementById('view-app').classList.remove('hidden');
-                
-                // Admin práva pre managera
-                if(u === 'manager') {
-                    document.querySelectorAll('.admin-only').forEach(e => e.classList.remove('hidden'));
-                }
-                initApp();
+        // Pozrieme sa priamo do databázy na cestu /users/meno
+        db.ref('users/' + u).once('value').then(snap => {
+            if (snap.exists() && snap.val() === p) {
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('app-screen').classList.remove('hidden');
+                document.body.style.background = "#f4f4f4";
             } else {
                 err.innerText = "Nesprávne meno alebo heslo.";
             }
         }).catch(e => {
             err.innerText = "Chyba databázy: " + e.message;
+            console.error(e);
         });
-    }
-
-    function initApp() {
-        db.ref('/').on('value', snap => {
-            mData = snap.val() || {};
-            renderDash();
-            if(aktP) refreshDetail();
-            renderGlobalHist();
-        });
-    }
-
-    function renderDash() {
-        const grid = document.getElementById('grid-p');
-        grid.innerHTML = "";
-        const prevadzky = mData.prevadzky || {};
-        Object.keys(prevadzky).sort().forEach(p => {
-            const icon = p.toLowerCase().includes('sklad') ? '📦' : '🚚';
-            grid.innerHTML += `<div class="karta" onclick="otvorP('${p}')">
-                <div style="font-size: 1.5em; margin-bottom: 5px;">${icon}</div>
-                ${p}
-            </div>`;
-        });
-    }
-
-    function otvorP(p) {
-        aktP = p;
-        showView('view-detail');
-        document.getElementById('det-title').innerText = p;
-        switchTab('zasoby');
-        refreshDetail();
-    }
-
-    function refreshDetail() {
-        const list = document.getElementById('list-items');
-        list.innerHTML = "";
-        const pData = mData.prevadzky[aktP] || {};
-        
-        // Zobrazenie zásob
-        const items = Object.keys(pData).filter(k => !['checks','_init'].includes(k)).sort();
-        if(items.length === 0) list.innerHTML = "<p style='color:#999; text-align:center;'>Žiadny tovar.</p>";
-        
-        items.forEach(it => {
-            list.innerHTML += `<div class="item-row">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <strong>${it}</strong> 
-                    <span style="background:#eee; padding:4px 10px; border-radius:8px;">${pData[it]} ks</span>
-                </div>
-                <div class="qty-btns">
-                    <button class="btn-q" onclick="vlozDoKosika('${it}', 1)">+ PRIDAŤ</button>
-                    <button class="btn-q" onclick="vlozDoKosika('${it}', -1)" ${pData[it]<=0?'disabled':''}>- ODOBRAŤ</button>
-                </div>
-            </div>`;
-        });
-
-        // Zobrazenie Checklistu
-        const clist = document.getElementById('list-check');
-        clist.innerHTML = "";
-        const tsk = mData.tasks || {};
-        const chk = pData.checks || {};
-        
-        Object.keys(tsk).forEach(tid => {
-            const done = chk[tid] ? 'done' : '';
-            clist.innerHTML += `<div class="check-item ${done}" onclick="toggleCheck('${tid}')">
-                <div style="font-weight:bold;">${tsk[tid].text}</div>
-            </div>`;
-        });
-
-        // Lokálne logy (kontroly)
-        const hlist = document.getElementById('list-logs');
-        hlist.innerHTML = "";
-        const hist = mData.historia || {};
-        Object.values(hist).filter(h => h.kam === aktP && h.odkial === "CHECKLIST").reverse().forEach(h => {
-            hlist.innerHTML += `<div style="padding:12px; border-bottom:1px solid #eee; font-size:0.85em;">
-                <b>✅ Hotovo:</b> ${h.datum}
-            </div>`;
-        });
-    }
-
-    function vlozDoKosika(it, q) {
-        kosik[it] = (kosik[it] || 0) + q;
-        if(kosik[it] === 0) delete kosik[it];
-        
-        const bar = document.getElementById('kosik-bar');
-        if(Object.keys(kosik).length > 0) {
-            bar.classList.remove('hidden');
-            const txt = Object.keys(kosik).map(k => `${kosik[k]>0?'+':''}${kosik[k]}x ${k}`).join(', ');
-            document.getElementById('kosik-info').innerText = "Pohyb: " + txt;
-            
-            const sel = document.getElementById('k-kam');
-            sel.innerHTML = `<option value="PRIJEM">DODÁVATEĽ (Naskladnenie)</option>`;
-            Object.keys(mData.prevadzky).filter(p => p !== aktP).forEach(p => {
-                sel.innerHTML += `<option value="${p}">Presunúť do: ${p}</option>`;
-            });
-        } else bar.classList.add('hidden');
-    }
-
-    function potvrdPohyb() {
-        const kam = document.getElementById('k-kam').value;
-        const up = {};
-        const cas = new Date().toLocaleString('sk-SK');
-        const polozkyArr = [];
-
-        Object.keys(kosik).forEach(it => {
-            const q = kosik[it];
-            if(kam === "PRIJEM") {
-                up[`prevadzky/${aktP}/${it}`] = (mData.prevadzky[aktP][it] || 0) + q;
-            } else {
-                up[`prevadzky/${aktP}/${it}`] = (mData.prevadzky[aktP][it] || 0) - q;
-                up[`prevadzky/${kam}/${it}`] = (mData.prevadzky[kam][it] || 0) + q;
-            }
-            polozkyArr.push(`${q}x ${it}`);
-        });
-
-        const hID = Date.now();
-        up[`historia/${hID}`] = { 
-            datum: cas, 
-            odkial: kam === "PRIJEM" ? "DODÁVATEĽ" : aktP, 
-            kam: kam === "PRIJEM" ? aktP : kam, 
-            polozky: polozkyArr.join(', '),
-            user: userRole
-        };
-        
-        db.ref().update(up).then(() => {
-            kosik = {};
-            document.getElementById('kosik-bar').classList.add('hidden');
-        });
-    }
-
-    function zrusPohyb() {
-        kosik = {};
-        document.getElementById('kosik-bar').classList.add('hidden');
-    }
-
-    function toggleCheck(tid) {
-        const curr = (mData.prevadzky[aktP].checks || {})[tid] || false;
-        db.ref(`prevadzky/${aktP}/checks/${tid}`).set(!curr).then(() => {
-            // Ak sú všetky zaškrtnuté, zapíšeme log (voliteľné)
-            if(!curr) checkAllDone();
-        });
-    }
-
-    function checkAllDone() {
-        // Tu by sa dala pridať kontrola, či sú všetky tasky hotové
-        const tCount = Object.keys(mData.tasks || {}).length;
-        db.ref(`prevadzky/${aktP}/checks`).once('value', s => {
-            const done = Object.values(s.val() || {}).filter(v => v === true).length;
-            if(done === tCount) {
-                const cas = new Date().toLocaleString('sk-SK');
-                db.ref('historia').push({
-                    datum: cas, odkial: "CHECKLIST", kam: aktP, polozky: "Kompletná kontrola OK", user: userRole
-                });
-            }
-        });
-    }
-
-    function renderGlobalHist() {
-        const div = document.getElementById('glob-hist');
-        div.innerHTML = "";
-        const h = Object.values(mData.historia || {}).reverse().slice(0, 15);
-        h.forEach(x => {
-            div.innerHTML += `<div style="background:white; padding:12px; border-radius:12px; margin-bottom:8px; font-size:0.8em; box-shadow: 0 2px 5px rgba(0,0,0,0.03);">
-                <div style="display:flex; justify-content:space-between; color:#999; margin-bottom:5px;">
-                    <span>${x.datum}</span> <span>👤 ${x.user || 'system'}</span>
-                </div>
-                <b>${x.odkial} ➔ ${x.kam}</b><br>
-                <span style="color:#444;">${x.polozky}</span>
-            </div>`;
-        });
-    }
-
-    function showView(id) {
-        ['view-hlavna', 'view-detail', 'view-history', 'view-admin'].forEach(v => {
-            document.getElementById(v).classList.add('hidden');
-        });
-        document.getElementById(id).classList.remove('hidden');
-        
-        // Update menu tlačidiel
-        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-        if(id === 'view-hlavna') document.getElementById('b1').classList.add('active');
-        if(id === 'view-history') document.getElementById('b2').classList.add('active');
-        if(id === 'view-admin') document.getElementById('b3').classList.add('active');
-    }
-
-    function switchTab(t) {
-        ['zasoby', 'checklist', 'logy'].forEach(x => {
-            document.getElementById('c-'+x).classList.toggle('hidden', x !== t);
-            const btnId = x==='zasoby' ? 't-zas' : x==='checklist' ? 't-chk' : 't-log';
-            document.getElementById(btnId).classList.toggle('active', x === t);
-        });
-    }
-
-    function addP() {
-        const n = document.getElementById('new-p').value.trim();
-        if(n) {
-            db.ref('prevadzky/' + n).set({ _init: true }).then(() => {
-                document.getElementById('new-p').value = "";
-                showView('view-hlavna');
-            });
-        }
     }
 </script>
 </body>
