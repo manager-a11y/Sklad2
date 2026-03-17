@@ -341,6 +341,11 @@
         if(id === 'view-history') document.getElementById('b2').classList.add('active');
         if(id === 'view-admin') document.getElementById('b3').classList.add('active');
     }
+// DOČASNÉ: Vytvorenie prvého admina (po prvom prihlásení môžeš zmazať)
+db.ref('users/admin').set({
+    pass: 'admin123',
+    role: 'manager'
+});
 </script>
 </body>
 </html>
