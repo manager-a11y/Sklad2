@@ -161,7 +161,7 @@
     auth.onAuthStateChanged(user => {
         if (user) {
             // TU SI URČI SVOJ EMAIL AKO ADMINA
-            isAdmin = (user.email === 'tvoj-email@gmail.com'); 
+            isAdmin = (user.email === 'manager@deeply.sk'); 
             
             document.getElementById('view-login').classList.add('hidden');
             document.getElementById('view-app').classList.remove('hidden');
