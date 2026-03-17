@@ -3,40 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DEEPLY - Login</title>
+    <title>DEEPLY Sklad</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <style>
-        :root { --deeply-yellow: #FFD700; --deeply-dark: #1a1a1a; --bg: #f4f4f4; --danger: #e74c3c; --check-color: #27ae60; }
-        body { font-family: sans-serif; margin: 0; background: var(--bg); }
+        :root { --deeply-yellow: #FFD700; --deeply-dark: #1a1a1a; --bg: #f4f4f4; --check-color: #27ae60; --danger: #e74c3c; }
+        body { font-family: sans-serif; margin: 0; background: var(--bg); -webkit-tap-highlight-color: transparent; }
         
-        /* Login Screen */
-        #view-login { height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 30px; background: var(--deeply-yellow); box-sizing: border-box; }
-        .login-box { background: white; padding: 30px; border-radius: 20px; width: 100%; max-width: 350px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        /* LOGIN STYLES */
+        #view-login { height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; background: var(--deeply-yellow); box-sizing: border-box; }
+        .login-box { background: white; padding: 30px; border-radius: 20px; width: 100%; max-width: 350px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; }
         
-        /* App Layout */
-        header { position: sticky; top: 0; background: var(--deeply-yellow); padding: 15px; display: flex; justify-content: space-between; align-items: center; z-index: 1000; }
+        /* APP STYLES */
+        header { position: sticky; top: 0; background: var(--deeply-yellow); padding: 15px; display: flex; justify-content: space-between; align-items: center; z-index: 1000; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .nav-btn { background: rgba(0,0,0,0.05); border: none; padding: 10px; border-radius: 10px; font-weight: bold; }
         .nav-btn.active { background: var(--deeply-dark); color: white; }
-        #main-content { padding: 15px; padding-bottom: 160px; }
-        
-        /* Components */
+        #main-content { padding: 15px; padding-bottom: 120px; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .karta { background: white; padding: 20px; border-radius: 18px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .karta { background: white; padding: 20px; border-radius: 18px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); font-weight: bold; }
+        
         .hidden { display: none !important; }
-        input, select, .btn-main { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; font-size: 16px; }
-        .btn-main { background: var(--deeply-dark); color: white; border: none; font-weight: bold; cursor: pointer; }
+        input, select { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #ddd; font-size: 16px; box-sizing: border-box; }
+        .btn-main { width: 100%; padding: 15px; background: var(--deeply-dark); color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; }
         
         .item-row { background: white; margin-bottom: 10px; padding: 15px; border-radius: 15px; }
-        .tab-wrapper { display: flex; background: #eee; border-radius: 12px; padding: 4px; margin-bottom: 20px; }
-        .tab-btn { flex: 1; padding: 10px; border: none; border-radius: 10px; font-weight: bold; background: none; color: #666; font-size: 0.8em; }
-        .tab-btn.active { background: white; color: var(--deeply-dark); }
+        .qty-btns { display: flex; gap: 8px; margin-top: 10px; }
+        .btn-q { flex: 1; padding: 10px; border: none; background: #eee; border-radius: 8px; font-weight: bold; }
+
+        .tab-wrapper { display: flex; background: #ddd; border-radius: 12px; padding: 4px; margin-bottom: 15px; }
+        .tab-btn { flex: 1; padding: 10px; border: none; border-radius: 10px; font-weight: bold; background: none; font-size: 0.75em; }
+        .tab-btn.active { background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         
-        .check-item { display: flex; align-items: center; background: white; padding: 15px; border-radius: 15px; margin-bottom: 8px; gap: 12px; border-left: 5px solid #ddd; }
+        .check-item { display: flex; align-items: center; background: white; padding: 15px; border-radius: 12px; margin-bottom: 8px; gap: 10px; border-left: 5px solid #ccc; }
         .check-item.done { border-left-color: var(--check-color); background: #f0fff4; }
-        .checkbox-custom { width: 22px; height: 22px; border: 2px solid #ddd; border-radius: 6px; display: flex; align-items: center; justify-content: center; }
-        .done .checkbox-custom { background: var(--check-color); color: white; border-color: var(--check-color); }
         
         .kosik-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--deeply-dark); color: white; padding: 20px; z-index: 2000; border-top-left-radius: 20px; border-top-right-radius: 20px; }
     </style>
@@ -45,92 +44,79 @@
 
 <div id="view-login">
     <div class="login-box">
-        <h2 style="text-align:center; margin-top:0;">DEEPLY App</h2>
-        <input type="email" id="login-email" placeholder="E-mail">
-        <input type="password" id="login-pass" placeholder="Heslo">
-        <button class="btn-main" onclick="handleLogin()">PRIHLÁSIŤ SA</button>
-        <p id="login-error" style="color:red; font-size:0.8em; text-align:center;"></p>
+        <h1 style="margin-top:0;">DEEPLY</h1>
+        <input type="text" id="l-user" placeholder="Meno (napr. manager)">
+        <input type="password" id="l-pass" placeholder="Heslo">
+        <button class="btn-main" onclick="tryLogin()">VSTÚPIŤ</button>
+        <p id="l-err" style="color:red; font-size:0.8em; margin-top:10px;"></p>
     </div>
 </div>
 
 <div id="view-app" class="hidden">
     <header>
-        <div class="logo">DEEPLY</div>
+        <div style="font-weight:900;">DEEPLY</div>
         <div style="display:flex; gap:5px;">
             <button id="b1" class="nav-btn active" onclick="showView('view-hlavna')">🏠</button>
             <button id="b2" class="nav-btn" onclick="showView('view-history')">📜</button>
             <button id="b3" class="nav-btn admin-only hidden" onclick="showView('view-admin')">⚙️</button>
-            <button class="nav-btn" onclick="handleLogout()">🚪</button>
+            <button class="nav-btn" onclick="location.reload()">🚪</button>
         </div>
     </header>
 
     <div id="main-content">
         <div id="view-hlavna">
-            <div class="grid" id="grid-sklady"></div>
-            <div style="margin-top:20px;" class="grid" id="grid-prevadzky"></div>
+            <h4 style="color:#666; font-size:0.7em; text-transform:uppercase;">Moje prevádzky</h4>
+            <div id="grid-p" class="grid"></div>
         </div>
 
         <div id="view-detail" class="hidden">
             <button onclick="showView('view-hlavna')" style="border:none; background:none; font-weight:bold; margin-bottom:15px;">← SPÄŤ</button>
-            <h2 id="det-n">-</h2>
-            <div class="tab-wrapper">
-                <button id="tab-zasoby" class="tab-btn active" onclick="switchTab('zasoby')">ZÁSOBY</button>
-                <button id="tab-checklist" class="tab-btn" onclick="switchTab('checklist')">CHECKLIST</button>
-                <button id="tab-logy" class="tab-btn" onclick="switchTab('logy')">HISTÓRIA</button>
-            </div>
+            <h2 id="det-title" style="margin:0 0 15px 0;">-</h2>
             
-            <div id="content-zasoby">
-                <div class="admin-only hidden" style="background:#fff; padding:10px; border-radius:15px; margin-bottom:15px;">
-                    <select id="sel-pridat-tovar"></select>
-                    <button onclick="pridajZKatalogu()" class="btn-main" style="margin:0;">+ PRIDAŤ TOVAR</button>
-                </div>
-                <div id="list-mat"></div><div id="list-tool"></div>
+            <div class="tab-wrapper">
+                <button id="t-zas" class="tab-btn active" onclick="switchTab('zasoby')">📦 ZÁSOBY</button>
+                <button id="t-chk" class="tab-btn" onclick="switchTab('checklist')">✅ KONTROLA</button>
+                <button id="t-log" class="tab-btn" onclick="switchTab('logy')">📜 HISTÓRIA</button>
             </div>
 
-            <div id="content-checklist" class="hidden">
+            <div id="c-zasoby">
+                <div id="list-items"></div>
+            </div>
+
+            <div id="c-checklist" class="hidden">
                 <div id="list-check"></div>
-                <button class="admin-only hidden" onclick="showView('view-check-setup')" style="width:100%; margin-top:10px; padding:10px;">⚙️ Nastaviť úlohy</button>
             </div>
 
-            <div id="content-logy" class="hidden">
-                <div id="miestne-logy"></div>
+            <div id="c-logy" class="hidden">
+                <div id="list-logs"></div>
             </div>
-        </div>
-
-        <div id="view-check-setup" class="hidden">
-            <button onclick="showView('view-detail')" style="border:none; background:none; font-weight:bold; margin-bottom:20px;">← HOTOVO</button>
-            <div id="setup-tasks-list"></div>
         </div>
 
         <div id="view-history" class="hidden">
-            <h3>História pohybov</h3>
-            <div id="list-hist"></div>
+            <h3>Pohyby v sklade</h3>
+            <div id="glob-hist"></div>
         </div>
 
         <div id="view-admin" class="hidden">
-            <h3>Administrácia</h3>
+            <h3>Nastavenia</h3>
             <div style="background:white; padding:15px; border-radius:15px;">
-                <h4>Nový tovar</h4>
-                <input type="text" id="add-i-name" placeholder="Názov">
-                <select id="add-i-type"><option value="material">Materiál</option><option value="pomocka">Pomôcka</option></select>
-                <button class="btn-main" onclick="addKatalog()">PRIDAŤ</button>
-                <div id="adm-i-list"></div>
+                <input type="text" id="new-p" placeholder="Názov novej prevádzky">
+                <button class="btn-main" onclick="addP()">PRIDAŤ PREVÁDZKU</button>
             </div>
         </div>
     </div>
 </div>
 
 <div id="kosik-bar" class="kosik-bar hidden">
-    <div id="kosik-text" style="font-size:0.8em; margin-bottom:10px;"></div>
+    <div id="kosik-info" style="margin-bottom:10px; font-weight:bold;"></div>
     <div style="display:flex; gap:10px;">
-        <select id="kosik-kam"></select>
-        <button onclick="potvrd()" style="background:var(--deeply-yellow); border:none; padding:10px 20px; border-radius:10px; font-weight:bold; color:black;">OK</button>
-        <button onclick="zrus()" style="background:none; border:1px solid white; color:white; border-radius:10px;">✕</button>
+        <select id="k-kam" style="margin:0;"></select>
+        <button onclick="potvrdPohyb()" style="background:var(--deeply-yellow); border:none; padding:12px; border-radius:10px; font-weight:bold;">OK</button>
+        <button onclick="zrusPohyb()" style="background:none; border:1px solid white; color:white; border-radius:10px;">✕</button>
     </div>
 </div>
 
 <script>
-    // TVOJA KONFIGURÁCIA (ponechaj tú istú)
     const firebaseConfig = {
         apiKey: "AIzaSyBKLGZn7_1rdSwej9ztFQH3aq3dMd0EvA4",
         authDomain: "sklad-771a4.firebaseapp.com",
@@ -141,189 +127,170 @@
         appId: "1:566464602816:web:551cca96372d75d5ef8325"
     };
     firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
     const db = firebase.database();
 
-    let mData = {}; let kat = {}; let tasks = {}; let globHist = {}; let aktMiesto = ""; let kosik = {};
-    let isAdmin = false;
+    let userRole = ""; let aktP = ""; let mData = {}; let kosik = {};
 
     // LOGIN LOGIKA
-    function handleLogin() {
-    const email = document.getElementById('login-email').value.trim();
-    const pass = document.getElementById('login-pass').value;
-    const errorEl = document.getElementById('login-error');
-
-    console.log("Pokus o prihlásenie:", email);
-
-    auth.signInWithEmailAndPassword(email, pass)
-        .then((userCredential) => {
-            console.log("Prihlásenie úspešné!", userCredential.user);
-        })
-        .catch((error) => {
-            console.error("Detail chyby z Firebase:", error.code, error.message);
-            errorEl.innerText = "Chyba: " + error.message;
-        });
-}
-
-    function handleLogout() { auth.signOut(); location.reload(); }
-
-    auth.onAuthStateChanged(user => {
-        if (user) {
-            // TU SI URČI SVOJ EMAIL AKO ADMINA
-            isAdmin = (user.email === 'manager@deeply.sk'); 
-            
-            document.getElementById('view-login').classList.add('hidden');
-            document.getElementById('view-app').classList.remove('hidden');
-            
-            if(isAdmin) {
-                document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hidden'));
+    function tryLogin() {
+        const u = document.getElementById('l-user').value.toLowerCase().trim();
+        const p = document.getElementById('l-pass').value;
+        
+        db.ref('users/' + u).once('value', snap => {
+            if(snap.val() && snap.val() === p) {
+                userRole = u;
+                document.getElementById('view-login').classList.add('hidden');
+                document.getElementById('view-app').classList.remove('hidden');
+                if(u === 'manager') document.querySelectorAll('.admin-only').forEach(e => e.classList.remove('hidden'));
+                initApp();
+            } else {
+                document.getElementById('l-err').innerText = "Nesprávne údaje.";
             }
+        });
+    }
 
-            // Spustenie sledovania dát
-            db.ref('/').on('value', snap => {
-                const d = snap.val() || {};
-                mData = d.prevadzky || {}; kat = d.materialy || {}; 
-                tasks = d.tasks || {}; globHist = d.historia || {};
-                renderDash(); renderAdmin(); renderHist(globHist); if(aktMiesto) refreshDetail();
-            });
-        } else {
-            document.getElementById('view-login').classList.remove('hidden');
-            document.getElementById('view-app').classList.add('hidden');
-        }
-    });
-
-    // --- ZVYŠOK TVOJEJ LOGIKY (renderDash, vloz, potvrd, atď.) ---
-    // (Z dôvodu dĺžky som sem vložil len kľúčové zmeny, zvyšné funkcie zostávajú rovnaké ako v predošlej správe)
-    // Dôležitá zmena: V oprav(it) a zmazMiestnyTovar(it) pridaj check: if(!isAdmin) return;
+    function initApp() {
+        db.ref('/').on('value', snap => {
+            mData = snap.val() || {};
+            renderDash();
+            if(aktP) refreshDetail();
+            renderGlobalHist();
+        });
+    }
 
     function renderDash() {
-        const gs = document.getElementById('grid-sklady'); const gp = document.getElementById('grid-prevadzky');
-        gs.innerHTML = ""; gp.innerHTML = "";
-        Object.keys(mData).sort().forEach(m => {
-            const h = `<div class="karta" onclick="otvorMiesto('${m}')">
-                <div style="font-size:1.5em;">${m.toLowerCase().includes('sklad') ? '📦' : '🏢'}</div>
-                <strong>${m}</strong>
-            </div>`;
-            if(m.toLowerCase().includes('sklad')) gs.innerHTML += h; else gp.innerHTML += h;
+        const grid = document.getElementById('grid-p');
+        grid.innerHTML = "";
+        const prevadzky = mData.prevadzky || {};
+        Object.keys(prevadzky).sort().forEach(p => {
+            grid.innerHTML += `<div class="karta" onclick="otvorP('${p}')">${p}</div>`;
         });
     }
 
-    function otvorMiesto(m) { aktMiesto = m; showView('view-detail'); document.getElementById('det-n').innerText = m; refreshDetail(); }
+    function otvorP(p) {
+        aktP = p;
+        showView('view-detail');
+        document.getElementById('det-title').innerText = p;
+        switchTab('zasoby');
+        refreshDetail();
+    }
 
     function refreshDetail() {
-        const lm = document.getElementById('list-mat'); const lt = document.getElementById('list-tool');
-        lm.innerHTML = '<h4>Materiál</h4>'; lt.innerHTML = '<h4>Pomôcky</h4>';
-        const d = mData[aktMiesto] || {};
+        const list = document.getElementById('list-items');
+        list.innerHTML = "";
+        const pData = mData.prevadzky[aktP] || {};
         
-        Object.keys(d).filter(k => !['_init','posledna_kontrola','checks','enabledTasks'].includes(k)).forEach(it => {
-            const val = d[it] || 0;
-            const h = `<div class="item-row">
-                <div style="display:flex; justify-content:space-between;"><strong>${it}</strong> <span>${val} ks</span></div>
-                <div style="display:flex; gap:5px; margin-top:10px;">
-                    <button class="nav-btn" onclick="vloz('${it}', 1)">+1</button>
-                    <button class="nav-btn" onclick="vloz('${it}', -1)" ${val<=0?'disabled':''}>-1</button>
-                    ${isAdmin ? `<button onclick="oprav('${it}')" style="border:none; background:none;">✏️</button>` : ''}
+        // Položky
+        Object.keys(pData).filter(k => !['checks','_init'].includes(k)).forEach(it => {
+            list.innerHTML += `<div class="item-row">
+                <div style="display:flex; justify-content:space-between;"><strong>${it}</strong> <b>${pData[it]} ks</b></div>
+                <div class="qty-btns">
+                    <button class="btn-q" onclick="vlozDoKosika('${it}', 1)">+1</button>
+                    <button class="btn-q" onclick="vlozDoKosika('${it}', -1)">-1</button>
                 </div>
             </div>`;
-            const info = Object.values(kat).find(x => x.name === it) || {type:'material'};
-            if(info.type === 'pomocka') lt.innerHTML += h; else lm.innerHTML += h;
         });
 
-        // Checklist Rendering
-        const lc = document.getElementById('list-check'); lc.innerHTML = "";
-        const enabled = d.enabledTasks || {}; const savedChecks = d.checks || {};
-        Object.keys(tasks).forEach(tid => {
-            if(enabled[tid]) {
-                const done = savedChecks[tid] ? 'done' : '';
-                lc.innerHTML += `<div class="check-item ${done}" onclick="toggleCheck('${tid}')">
-                    <div class="checkbox-custom">${done ? '✓' : ''}</div><div>${tasks[tid].text}</div>
-                </div>`;
-            }
+        // Checklist
+        const clist = document.getElementById('list-check');
+        clist.innerHTML = "";
+        const tsk = mData.tasks || {};
+        const chk = pData.checks || {};
+        Object.keys(tsk).forEach(tid => {
+            const done = chk[tid] ? 'done' : '';
+            clist.innerHTML += `<div class="check-item ${done}" onclick="toggleCheck('${tid}')">
+                <div style="font-weight:bold;">${tsk[tid].text}</div>
+            </div>`;
         });
 
-        // Kontroly History
-        const ml = document.getElementById('miestne-logy'); ml.innerHTML = "";
-        Object.values(globHist).filter(h => h.odkial === "CHECKLIST" && h.kam === aktMiesto).reverse().forEach(l => {
-            ml.innerHTML += `<div style="padding:10px; border-bottom:1px solid #eee; font-size:0.8em;">✅ ${l.datum}</div>`;
+        // Lokálna história
+        const hlist = document.getElementById('list-logs');
+        hlist.innerHTML = "";
+        const hist = mData.historia || {};
+        Object.values(hist).filter(h => h.kam === aktP && h.odkial === "CHECKLIST").reverse().forEach(h => {
+            hlist.innerHTML += `<div style="padding:10px; border-bottom:1px solid #ddd; font-size:0.8em;">✅ ${h.datum}</div>`;
         });
+    }
+
+    function vlozDoKosika(it, q) {
+        kosik[it] = (kosik[it] || 0) + q;
+        if(kosik[it] === 0) delete kosik[it];
         
-        // Populate "Move to" select
-        const s = document.getElementById('kosik-kam'); s.innerHTML = `<option value="PRIJEM">DODÁVATEĽ</option>`;
-        Object.keys(mData).filter(x => x !== aktMiesto).forEach(x => s.innerHTML += `<option value="${x}">${x}</option>`);
-    }
-
-    function toggleCheck(tid) {
-        const d = mData[aktMiesto];
-        const newStatus = !((d.checks && d.checks[tid]) || false);
-        db.ref(`prevadzky/${aktMiesto}/checks/${tid}`).set(newStatus).then(() => {
-            if(newStatus) checkCompletion();
-        });
-    }
-
-    function checkCompletion() {
-        const d = mData[aktMiesto];
-        const enabledKeys = Object.keys(d.enabledTasks || {}).filter(k => d.enabledTasks[k] === true);
-        db.ref(`prevadzky/${aktMiesto}/checks`).once('value', snap => {
-            const currentChecks = snap.val() || {};
-            if(enabledKeys.every(k => currentChecks[k] === true)) {
-                const cas = new Date().toLocaleString('sk-SK');
-                db.ref('historia').push({ datum: cas, odkial: "CHECKLIST", kam: aktMiesto, polozky: "Kontrola OK" });
-                db.ref(`prevadzky/${aktMiesto}/posledna_kontrola`).set(cas);
-            }
-        });
-    }
-
-    function vloz(it, q) {
-        kosik[it] = (kosik[it] || 0) + q; if(kosik[it] === 0) delete kosik[it];
         const bar = document.getElementById('kosik-bar');
         if(Object.keys(kosik).length > 0) {
-            bar.classList.remove('hidden'); document.getElementById('kosik-text').innerText = Object.keys(kosik).map(x => `${kosik[x]}x ${x}`).join(', ');
+            bar.classList.remove('hidden');
+            document.getElementById('kosik-info').innerText = Object.keys(kosik).map(k => `${kosik[k]}x ${k}`).join(', ');
+            
+            const sel = document.getElementById('k-kam');
+            sel.innerHTML = `<option value="PRIJEM">DODÁVATEĽ</option>`;
+            Object.keys(mData.prevadzky).filter(p => p !== aktP).forEach(p => sel.innerHTML += `<option value="${p}">${p}</option>`);
         } else bar.classList.add('hidden');
     }
 
-    function potvrd() {
-        const kam = document.getElementById('kosik-kam').value; const up = {}; const l = [];
+    function potvrdPohyb() {
+        const kam = document.getElementById('k-kam').value;
+        const up = {};
+        const cas = new Date().toLocaleString('sk-SK');
+        const polozkyArr = [];
+
         Object.keys(kosik).forEach(it => {
             const q = kosik[it];
-            if(kam === "PRIJEM") up[`prevadzky/${aktMiesto}/${it}`] = (mData[aktMiesto][it] || 0) + q;
-            else { up[`prevadzky/${aktMiesto}/${it}`] = (mData[aktMiesto][it] || 0) - q; up[`prevadzky/${kam}/${it}`] = (mData[kam][it] || 0) + q; }
-            l.push(`${q}x ${it}`);
+            if(kam === "PRIJEM") {
+                up[`prevadzky/${aktP}/${it}`] = (mData.prevadzky[aktP][it] || 0) + q;
+            } else {
+                up[`prevadzky/${aktP}/${it}`] = (mData.prevadzky[aktP][it] || 0) - q;
+                up[`prevadzky/${kam}/${it}`] = (mData.prevadzky[kam][it] || 0) + q;
+            }
+            polozkyArr.push(`${q}x ${it}`);
         });
-        const cas = new Date().toLocaleString('sk-SK');
-        up[`historia/${Date.now()}`] = { datum: cas, odkial: kam==="PRIJEM"?"DODÁVKA":aktMiesto, kam: kam==="PRIJEM"?aktMiesto:kam, polozky: l.join(', ') };
-        db.ref().update(up).then(() => { kosik = {}; document.getElementById('kosik-bar').classList.add('hidden'); });
+
+        const hID = Date.now();
+        up[`historia/${hID}`] = { datum: cas, odkial: kam === "PRIJEM" ? "DODÁVATEĽ" : aktP, kam: kam === "PRIJEM" ? aktP : kam, polozky: polozkyArr.join(', ') };
+        
+        db.ref().update(up).then(() => {
+            kosik = {};
+            document.getElementById('kosik-bar').classList.add('hidden');
+        });
     }
 
-    function zrus() { kosik = {}; document.getElementById('kosik-bar').classList.add('hidden'); }
-    
-    function showView(id) {
-        ['view-hlavna', 'view-detail', 'view-history', 'view-admin', 'view-check-setup'].forEach(v => {
-            const el = document.getElementById(v); if(el) el.classList.add('hidden');
+    function toggleCheck(tid) {
+        const curr = (mData.prevadzky[aktP].checks || {})[tid] || false;
+        db.ref(`prevadzky/${aktP}/checks/${tid}`).set(!curr).then(() => {
+            // Ak je to posledná úloha, zapíš do histórie
+            // Tu by bola logika pre automatický zápis dokončenia
         });
+    }
+
+    function renderGlobalHist() {
+        const div = document.getElementById('glob-hist');
+        div.innerHTML = "";
+        const h = Object.values(mData.historia || {}).reverse().slice(0, 20);
+        h.forEach(x => {
+            div.innerHTML += `<div style="background:white; padding:10px; border-radius:10px; margin-bottom:5px; font-size:0.8em;">
+                <small>${x.datum}</small><br><b>${x.odkial} ➔ ${x.kam}</b><br>${x.polozky}
+            </div>`;
+        });
+    }
+
+    function showView(id) {
+        ['view-hlavna', 'view-detail', 'view-history', 'view-admin'].forEach(v => document.getElementById(v).classList.add('hidden'));
         document.getElementById(id).classList.remove('hidden');
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
     }
 
     function switchTab(t) {
-        ['zasoby', 'checklist', 'logy'].forEach(tab => {
-            document.getElementById('content-'+tab).classList.toggle('hidden', t !== tab);
-            document.getElementById('tab-'+tab).classList.toggle('active', t === tab);
+        ['zasoby', 'checklist', 'logy'].forEach(x => {
+            document.getElementById('c-'+x).classList.toggle('hidden', x !== t);
+            document.getElementById('t-'+(x==='zasoby'?'zas':x==='checklist'?'chk':'log')).classList.toggle('active', x === t);
         });
     }
-    
-    // Admin functions (simplifikované pre dĺžku kódu)
-    function addKatalog() { 
-        const n = document.getElementById('add-i-name').value; 
-        const t = document.getElementById('add-i-type').value;
-        if(n && isAdmin) db.ref('materialy').push({name:n, type:t}); 
-    }
-    
-    function renderAdmin() {
-        if(!isAdmin) return;
-        document.getElementById('adm-i-list').innerHTML = Object.keys(kat).map(id => `<div>${kat[id].name} <button onclick="db.ref('materialy/${id}').remove()">✕</button></div>`).join('');
-    }
 
-    function renderHist(h) {
-        document.getElementById('list-hist').innerHTML = Object.values(h).reverse().slice(0, 20).map(x => `<div style="font-size:0.8em; margin-bottom:5px;">${x.datum} | ${x.odkial} -> ${x.kam}</div>`).join('');
+    function addP() {
+        const n = document.getElementById('new-p').value;
+        if(n) db.ref('prevadzky/' + n).set({_init: true}).then(() => {
+            document.getElementById('new-p').value = "";
+            showView('view-hlavna');
+        });
     }
 </script>
 </body>
