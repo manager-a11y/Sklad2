@@ -3,113 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SKLAD PRO Mobile</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>DEEPLY Sklad</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <style>
-        :root { --primary: #1a252f; --accent: #3498db; --warehouse: #e67e22; --tools: #9b59b6; --bg: #f4f7f6; --success: #27ae60; --danger: #e74c3c; --white: #ffffff; }
-        body { font-family: -apple-system, system-ui, sans-serif; margin: 0; background: var(--bg); color: #333; -webkit-tap-highlight-color: transparent; }
-
-        header { position: sticky; top: 0; background: var(--primary); color: white; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; z-index: 1000; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .nav-links { display: flex; gap: 8px; }
-        .nav-links button { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 8px 12px; border-radius: 8px; font-size: 14px; cursor: pointer; }
-        .nav-links button.active { background: var(--accent); border-color: var(--accent); }
-
-        #main-content { padding: 15px; padding-bottom: 140px; }
-
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .karta { background: var(--white); padding: 20px; border-radius: 15px; text-align: center; border-top: 5px solid var(--accent); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        .karta-sklad { border-top-color: var(--warehouse); }
-
-        .item-row { background: white; margin-bottom: 12px; padding: 15px; border-radius: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-left: 5px solid #eee; }
-        .item-info { display: flex; justify-content: space-between; margin-bottom: 12px; }
-        .item-name { font-weight: bold; font-size: 1.1em; }
-        .item-qty { font-size: 1.2em; color: var(--accent); font-weight: 800; }
+        :root { --deeply-yellow: #FFD700; --deeply-dark: #1a1a1a; --mat-bg: #e3f2fd; --tool-bg: #f3e5f5; --bg: #f5f5f5; }
+        body { font-family: sans-serif; margin: 0; background: var(--bg); color: var(--deeply-dark); }
         
-        .item-actions { display: flex; gap: 8px; }
-        .btn-qty { flex: 1; padding: 15px 5px; border: none; background: #f0f2f5; border-radius: 10px; font-weight: bold; font-size: 16px; cursor: pointer; }
-        .btn-qty:active { background: #dcdfe3; }
+        header { position: sticky; top: 0; background: var(--deeply-yellow); padding: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); z-index: 100; }
+        .logo { font-weight: 900; font-size: 1.3em; letter-spacing: 1px; }
         
-        .kosik-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--primary); color: white; padding: 15px; z-index: 2000; border-top: 4px solid var(--success); }
-        .kosik-controls { display: flex; gap: 10px; margin-top: 10px; }
-        #kosik-akcia { flex-grow: 1; padding: 12px; border-radius: 10px; border: none; font-size: 14px; font-weight: bold; }
-        #btn-vykonat { background: var(--success); color: white; border: none; padding: 12px 25px; border-radius: 10px; font-weight: bold; font-size: 16px; }
+        #main-content { padding: 15px; padding-bottom: 150px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .karta { background: white; padding: 15px; border-radius: 15px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .last-check { font-size: 0.7em; color: #777; display: block; margin-top: 5px; }
 
-        .hidden { display: none !important; }
-        .kat-header { font-weight: bold; margin: 25px 0 10px 5px; color: #7f8c8d; text-transform: uppercase; font-size: 0.75em; letter-spacing: 1px; }
+        /* Rozdelenie kategórií */
+        .kat-section { margin-top: 20px; border-radius: 15px; overflow: hidden; }
+        .kat-header { padding: 10px 15px; font-weight: bold; font-size: 0.9em; display: flex; align-items: center; gap: 8px; }
+        .mat-header { background: #bbdefb; color: #0d47a1; }
+        .tool-header { background: #e1bee7; color: #4a148c; }
         
-        /* Admin */
-        .admin-card { background: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; }
-        input, select { width: 100%; padding: 15px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 10px; font-size: 16px; box-sizing: border-box; }
+        .item-row { background: white; padding: 15px; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 10px; }
+        .item-info { display: flex; justify-content: space-between; align-items: center; }
+        .item-name { font-weight: bold; }
+        .item-qty { font-weight: 900; color: #2c3e50; }
+        
+        .item-actions { display: flex; gap: 5px; }
+        .btn-q { flex: 1; padding: 12px; border: none; background: #f0f0f0; border-radius: 8px; font-weight: bold; }
+        .btn-edit { background: none; border: none; font-size: 1.2em; }
+
+        .kosik-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--deeply-dark); color: white; padding: 15px; z-index: 200; border-top: 5px solid var(--deeply-yellow); }
+        #btn-potvrdit { background: var(--deeply-yellow); color: var(--deeply-dark); border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; width: 100%; margin-top: 10px; }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
 
 <header>
-    <div style="font-weight: 900; letter-spacing: 1px;">🧹 SKLAD PRO</div>
-    <div class="nav-links">
-        <button id="btn-home" class="active" onclick="showView('view-hlavna')">🏠</button>
-        <button id="btn-history" onclick="showView('view-history')">📜</button>
-        <button id="btn-admin" onclick="showView('view-admin')">⚙️</button>
+    <div class="logo">DEEPLY</div>
+    <div style="display:flex; gap:10px;">
+        <button onclick="showView('view-home')" style="border:none; background:none; font-size:1.5em;">🏠</button>
+        <button onclick="showView('view-admin')" style="border:none; background:none; font-size:1.5em;">⚙️</button>
     </div>
 </header>
 
 <div id="main-content">
-    <div id="view-hlavna">
-        <h3 class="kat-header">📦 Sklady</h3>
-        <div id="grid-sklady" class="grid"></div>
-        <h3 class="kat-header">🏢 Prevádzky</h3>
-        <div id="grid-prevadzky" class="grid"></div>
+    <div id="view-home">
+        <h4 style="color:#777; margin: 10px 0;">SKLADY A PREVÁDZKY</h4>
+        <div id="grid-miesta" class="grid"></div>
     </div>
 
-    <div id="view-inventura" class="hidden">
-        <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <button onclick="showView('view-hlavna')" style="background:none; border:none; color:var(--accent); font-weight:bold; font-size:16px; padding:10px 0;">← Späť</button>
-            <h2 id="nadpis-p" style="margin:0; font-size: 1.4em;">Miesto</h2>
+    <div id="view-detail" class="hidden">
+        <button onclick="showView('view-home')" style="background:none; border:none; color:#777; font-weight:bold; margin-bottom:15px;">← SPÄŤ</button>
+        <h2 id="nadpis-miesto" style="margin:0 0 20px 0;">-</h2>
+        
+        <div class="kat-section">
+            <div class="kat-header mat-header">💧 MATERIÁL</div>
+            <div id="list-material"></div>
         </div>
-        <div id="list-material"></div>
-        <div id="list-pomocky"></div>
 
-        <div style="margin-top:30px; padding:20px; background:#e9ecef; border-radius:15px;">
-            <label style="display:block; margin-bottom:10px; font-weight:bold;">➕ Pridať tovar na toto miesto:</label>
-            <select id="sel-katalog"></select>
-            <button onclick="pridatZKatalogu()" style="width:100%; background:var(--primary); color:white; border:none; padding:15px; border-radius:10px; font-weight:bold;">Pridať do zoznamu</button>
+        <div class="kat-section" style="margin-top:20px;">
+            <div class="kat-header tool-header">🛠️ POMÔCKY</div>
+            <div id="list-pomocky"></div>
         </div>
-    </div>
-
-    <div id="view-history" class="hidden">
-        <h3>História pohybov</h3>
-        <div id="list-historia"></div>
     </div>
 
     <div id="view-admin" class="hidden">
-        <h3>Nastavenia</h3>
-        <div class="admin-card">
-            <h4>🏢 Pridať nové miesto</h4>
-            <input type="text" id="new-p-name" placeholder="Názov (napr. Sklad 3)">
-            <button onclick="addMiesto()" style="width:100%; background:var(--success); color:white; border:none; padding:15px; border-radius:10px; font-weight:bold;">Uložiť miesto</button>
-            <div id="list-prevadzky-admin" style="margin-top:20px;"></div>
-        </div>
-        <div class="admin-card">
-            <h4>📦 Pridať tovar do katalógu</h4>
-            <input type="text" id="new-m-name" placeholder="Názov tovaru">
-            <select id="new-m-type">
-                <option value="material">💧 Materiál</option>
-                <option value="pomocka">🛠️ Pomôcka</option>
-            </select>
-            <button onclick="addItemToKatalog()" style="width:100%; background:var(--success); color:white; border:none; padding:15px; border-radius:10px; font-weight:bold;">Uložiť do katalógu</button>
-            <div id="list-katalog-admin" style="margin-top:20px;"></div>
-        </div>
+        <h3>Administrácia</h3>
+        <input type="text" id="new-item-name" placeholder="Názov tovaru" style="width:100%; padding:10px; margin-bottom:10px; box-sizing:border-box;">
+        <select id="new-item-type" style="width:100%; padding:10px; margin-bottom:10px;">
+            <option value="material">Materiál</option>
+            <option value="pomocka">Pomôcka</option>
+        </select>
+        <button onclick="addKatalog()" style="width:100%; padding:10px; background:var(--deeply-yellow); border:none; font-weight:bold;">Pridať do katalógu</button>
     </div>
 </div>
 
 <div id="kosik-bar" class="kosik-bar hidden">
-    <div id="kosik-text" style="font-size: 0.9em; font-weight: bold;"></div>
-    <div class="kosik-controls">
-        <select id="kosik-akcia"></select>
-        <button id="btn-vykonat" onclick="vykonatPohyb()">OK</button>
-        <button onclick="zrusitKosik()" style="background:none; border:1px solid white; color:white; border-radius:10px; padding:0 15px;">X</button>
-    </div>
+    <div id="kosik-text" style="font-size: 0.9em;"></div>
+    <select id="sel-kam" style="width:100%; padding:8px; margin-top:10px; border-radius:5px;"></select>
+    <button id="btn-potvrdit" onclick="vykonatPohyb()">POTVRDIŤ POHYB</button>
 </div>
 
 <script>
@@ -122,158 +97,102 @@
         messagingSenderId: "566464602816",
         appId: "1:566464602816:web:551cca96372d75d5ef8325"
     };
-
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    let vsetkyMesta = {}; let katalog = {}; let aktMiesto = ""; let kosik = {};
+    let mData = {}; let kat = {}; let aktMiesto = ""; let kosik = {};
 
-    db.ref('/').on('value', (snap) => {
-        const data = snap.val() || {};
-        vsetkyMesta = data.prevadzky || {};
-        katalog = data.materialy || {};
-        renderDashboard();
-        renderAdmin();
-        renderHistory(data.historia || {});
+    db.ref('/').on('value', snap => {
+        const d = snap.val() || {};
+        mData = d.prevadzky || {};
+        kat = d.materialy || {};
+        renderHome();
         if(aktMiesto) refreshDetail();
     });
 
-    function renderDashboard() {
-        const gS = document.getElementById('grid-sklady');
-        const gP = document.getElementById('grid-prevadzky');
-        gS.innerHTML = ""; gP.innerHTML = "";
-        Object.keys(vsetkyMesta).sort().forEach(m => {
-            const isSklad = m.toLowerCase().includes('sklad');
-            const html = `<div class="karta ${isSklad ? 'karta-sklad' : ''}" onclick="otvorMiesto('${m}')">
-                <div style="font-size:30px; margin-bottom:5px;">${isSklad ? '📦' : '🏢'}</div>
-                <div style="font-weight:bold; font-size:1.1em;">${m}</div>
+    function renderHome() {
+        const g = document.getElementById('grid-miesta'); g.innerHTML = "";
+        Object.keys(mData).sort().forEach(m => {
+            const last = mData[m].posledna_kontrola || "---";
+            g.innerHTML += `<div class="karta" onclick="otvorMiesto('${m}')">
+                <div style="font-size:2em;">${m.toLowerCase().includes('sklad') ? '📦' : '🏢'}</div>
+                <div style="font-weight:bold;">${m}</div>
+                <span class="last-check">Kontrola: ${last}</span>
             </div>`;
-            if(isSklad) gS.innerHTML += html; else gP.innerHTML += html;
         });
     }
 
-    function otvorMiesto(m) { aktMiesto = m; showView('view-inventura'); document.getElementById('nadpis-p').innerText = m; refreshDetail(); }
+    function otvorMiesto(m) { aktMiesto = m; showView('view-detail'); document.getElementById('nadpis-miesto').innerText = m; refreshDetail(); }
 
     function refreshDetail() {
-        const data = vsetkyMesta[aktMiesto] || {};
-        const lMat = document.getElementById('list-material');
-        const lPom = document.getElementById('list-pomocky');
-        lMat.innerHTML = ""; lPom.innerHTML = "";
+        const lM = document.getElementById('list-material'); lM.innerHTML = "";
+        const lP = document.getElementById('list-pomocky'); lP.innerHTML = "";
+        const d = mData[aktMiesto] || {};
 
-        Object.keys(data).filter(k => !['_init', 'posledna_kontrola'].includes(k)).sort().forEach(item => {
-            const katItem = Object.values(katalog).find(x => x.name === item) || {type: 'material'};
-            const vKosiku = kosik[item] || 0;
-            const html = `
-                <div class="item-row">
-                    <div class="item-info">
-                        <span class="item-name">${item}</span>
-                        <span class="item-qty">${data[item]} ks</span>
-                    </div>
-                    <div class="item-actions">
-                        <button class="btn-qty" onclick="zmenKosik('${item}', 1)">+1</button>
-                        <button class="btn-qty" onclick="zmenKosik('${item}', 10)">+10</button>
-                        <button class="btn-qty" onclick="zmenKosik('${item}', -1)">-1</button>
-                        <button onclick="opravitStav('${item}')" style="background:none; border:none; font-size:22px; padding:0 10px;">✏️</button>
-                    </div>
-                    ${vKosiku != 0 ? `<div style="color:var(--success); font-weight:bold; font-size:0.85em; margin-top:10px;">V zozname na presun: ${vKosiku} ks</div>` : ''}
-                </div>`;
-            if(katItem.type === 'pomocka') lPom.innerHTML += html; else lMat.innerHTML += html;
+        Object.keys(d).filter(k => !['_init','posledna_kontrola'].includes(k)).sort().forEach(it => {
+            const info = Object.values(kat).find(x => x.name === it) || {type:'material'};
+            const html = `<div class="item-row">
+                <div class="item-info"><span class="item-name">${it}</span><span class="item-qty">${d[it]} ks</span></div>
+                <div class="item-actions">
+                    <button class="btn-q" onclick="zmenKosik('${it}', 1)">+1</button>
+                    <button class="btn-q" onclick="zmenKosik('${it}', -1)">-1</button>
+                    <button class="btn-edit" onclick="oprav('${it}')">✏️</button>
+                </div>
+            </div>`;
+            if(info.type === 'pomocka') lP.innerHTML += html; else lM.innerHTML += html;
         });
 
-        const selAkcia = document.getElementById('kosik-akcia');
-        const isSklad = aktMiesto.toLowerCase().includes('sklad');
-        let moznosti = `<option value="PRIJEM">➕ PRÍJEM (od Dodávateľa)</option>`;
-        if(isSklad) {
-            Object.keys(vsetkyMesta).filter(x => x !== aktMiesto).sort().forEach(x => {
-                moznosti += `<option value="${x}">🚚 ROZVOZ: ${x}</option>`;
-            });
-        }
-        selAkcia.innerHTML = moznosti;
-        
-        document.getElementById('sel-katalog').innerHTML = `<option value="">-- Vybrať tovar --</option>` + 
-            Object.values(katalog).sort((a,b)=>a.name.localeCompare(b.name)).map(x => `<option value="${x.name}">${x.name}</option>`).join('');
-        
-        renderKosikBar();
+        const s = document.getElementById('sel-kam'); s.innerHTML = `<option value="PRIJEM">PRÍJEM (Dodávateľ)</option>`;
+        Object.keys(mData).filter(x => x !== aktMiesto).sort().forEach(x => { s.innerHTML += `<option value="${x}">ODSLAŤ DO: ${x}</option>`; });
     }
 
-    function zmenKosik(item, qty) {
-        kosik[item] = (kosik[item] || 0) + qty;
-        if(kosik[item] === 0) delete kosik[item];
-        renderKosikBar();
-        refreshDetail();
-    }
-
-    function renderKosikBar() {
+    function zmenKosik(it, q) {
+        kosik[it] = (kosik[it] || 0) + q; if(kosik[it] === 0) delete kosik[it];
         const bar = document.getElementById('kosik-bar');
         const keys = Object.keys(kosik);
         if(keys.length > 0) {
             bar.classList.remove('hidden');
-            document.getElementById('kosik-text').innerText = "V zozname: " + keys.map(k => `${kosik[k]}x ${k}`).join(', ');
-        } else { bar.classList.add('hidden'); }
+            document.getElementById('kosik-text').innerText = "Pripravené: " + keys.map(k => `${kosik[k]}x ${k}`).join(', ');
+        } else bar.classList.add('hidden');
     }
 
     function vykonatPohyb() {
-        const ciel = document.getElementById('kosik-akcia').value;
-        const updates = {}; const log = []; const cas = new Date().toLocaleString('sk-SK');
-        Object.keys(kosik).forEach(item => {
-            const q = kosik[item];
-            if(ciel === "PRIJEM") {
-                updates[`prevadzky/${aktMiesto}/${item}`] = (vsetkyMesta[aktMiesto][item] || 0) + q;
-                log.push(`${q}ks ${item}`);
-            } else {
-                updates[`prevadzky/${aktMiesto}/${item}`] = (vsetkyMesta[aktMiesto][item] || 0) - q;
-                updates[`prevadzky/${ciel}/${item}`] = (vsetkyMesta[ciel][item] || 0) + q;
-                log.push(`${q}ks ${item}`);
+        const kam = document.getElementById('sel-kam').value;
+        const up = {}; const log = []; const cas = new Date().toLocaleString('sk-SK');
+        Object.keys(kosik).forEach(it => {
+            const q = kosik[it];
+            if(kam === "PRIJEM") { up[`prevadzky/${aktMiesto}/${it}`] = (mData[aktMiesto][it] || 0) + q; }
+            else { 
+                up[`prevadzky/${aktMiesto}/${it}`] = (mData[aktMiesto][it] || 0) - q;
+                up[`prevadzky/${kam}/${it}`] = (mData[kam][it] || 0) + q;
             }
+            log.push(`${q}x ${it}`);
         });
-        updates[`historia/${Date.now()}`] = { datum: cas, odkial: ciel === "PRIJEM" ? "DODÁVATEĽ" : aktMiesto, kam: ciel === "PRIJEM" ? aktMiesto : ciel, polozky: log.join(', ') };
-        db.ref().update(updates).then(() => { alert("Úspešne vykonané"); zrusitKosik(); showView('view-hlavna'); });
+        up[`historia/${Date.now()}`] = { datum: cas, odkial: kam==="PRIJEM"?"DODÁVKA":aktMiesto, kam: kam==="PRIJEM"?aktMiesto:kam, polozky: log.join(', ') };
+        db.ref().update(up).then(() => { kosik = {}; document.getElementById('kosik-bar').classList.add('hidden'); showView('view-home'); });
     }
 
-    function zrusitKosik() { kosik = {}; renderKosikBar(); if(aktMiesto) refreshDetail(); }
-
-    function opravitStav(item) {
-        const n = prompt(`Zadaj presný stav pre ${item}:`, vsetkyMesta[aktMiesto][item]);
-        if(n !== null && n !== "") { 
-            db.ref(`prevadzky/${aktMiesto}/${item}`).set(parseInt(n) || 0); 
-            db.ref(`prevadzky/${aktMiesto}/posledna_kontrola`).set(new Date().toLocaleString('sk-SK'));
+    function oprav(it) {
+        const n = prompt(`Zadaj presný stav pre ${it}:`, mData[aktMiesto][it]);
+        if(n !== null) {
+            db.ref(`prevadzky/${aktMiesto}/${it}`).set(parseInt(n) || 0);
+            db.ref(`prevadzky/${aktMiesto}/posledna_kontrola`).set(new Date().toLocaleDateString('sk-SK'));
         }
     }
 
     function showView(id) {
-        ['view-hlavna', 'view-admin', 'view-inventura', 'view-history'].forEach(v => document.getElementById(v).classList.add('hidden'));
+        document.getElementById('view-home').classList.add('hidden');
+        document.getElementById('view-detail').classList.add('hidden');
+        document.getElementById('view-admin').classList.add('hidden');
         document.getElementById(id).classList.remove('hidden');
-        document.querySelectorAll('.nav-links button').forEach(b => b.classList.remove('active'));
-        if(id === 'view-hlavna') document.getElementById('btn-home').classList.add('active');
-        if(id === 'view-admin') document.getElementById('btn-admin').classList.add('active');
-        if(id === 'view-history') document.getElementById('btn-history').classList.add('active');
         window.scrollTo(0,0);
     }
 
-    function renderAdmin() {
-        document.getElementById('list-prevadzky-admin').innerHTML = Object.keys(vsetkyMesta).sort().map(m => `
-            <div style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid #eee;">
-                <span>${m}</span><button onclick="if(confirm('Zmazať?')) db.ref('prevadzky/${m}').remove()" style="color:red; border:none; background:none; font-weight:bold;">ZMAZAŤ ✖</button>
-            </div>`).join('');
-        document.getElementById('list-katalog-admin').innerHTML = Object.keys(katalog).map(id => `
-            <div style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid #eee;">
-                <span>${katalog[id].name}</span><button onclick="if(confirm('Zmazať?')) db.ref('materialy/${id}').remove()" style="color:red; border:none; background:none; font-weight:bold;">ZMAZAŤ ✖</button>
-            </div>`).join('');
+    function addKatalog() {
+        const n = document.getElementById('new-item-name').value;
+        const t = document.getElementById('new-item-type').value;
+        if(n) { db.ref('materialy').push({name: n, type: t}); document.getElementById('new-item-name').value = ""; }
     }
-
-    function renderHistory(hist) {
-        const entries = Object.values(hist).reverse().slice(0, 30);
-        document.getElementById('list-historia').innerHTML = entries.map(h => `
-            <div style="padding:15px; border-bottom:1px solid #ddd; font-size:0.9em; background:white; margin-bottom:10px; border-radius:10px;">
-                <div style="color:#7f8c8d; font-size:0.8em;">${h.datum}</div>
-                <strong style="display:block; margin:5px 0;">${h.odkial} ➡️ ${h.kam}</strong>
-                <div style="color:#555;">${h.polozky}</div>
-            </div>`).join('');
-    }
-
-    function addMiesto() { const n = document.getElementById('new-p-name').value; if(n) { db.ref('prevadzky/' + n).set({_init: true}); document.getElementById('new-p-name').value = ""; } }
-    function addItemToKatalog() { const n = document.getElementById('new-m-name').value; const t = document.getElementById('new-m-type').value; if(n) { db.ref('materialy').push({name: n, type: t}); document.getElementById('new-m-name').value = ""; } }
-    function pridatZKatalogu() { const val = document.getElementById('sel-katalog').value; if(val) db.ref(`prevadzky/${aktMiesto}/${val}`).set(0); }
 </script>
 </body>
 </html>
