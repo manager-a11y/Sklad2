@@ -3,115 +3,114 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DEEPLY Sklad</title>
+    <title>DEEPLY Skladový Systém</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <style>
-        :root { --deeply-yellow: #FFD700; --deeply-dark: #1a1a1a; --bg: #f2f2f7; }
+        :root { --yellow: #FFD700; --dark: #1a1a1a; --bg: #f4f4f4; --white: #ffffff; }
+        body { font-family: -apple-system, system-ui, sans-serif; margin: 0; background: var(--bg); color: var(--dark); -webkit-tap-highlight-color: transparent; }
         
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; background: var(--bg); color: var(--deeply-dark); -webkit-tap-highlight-color: transparent; }
+        /* LOGIN */
+        #view-login { height: 100vh; display: flex; justify-content: center; align-items: center; background: var(--yellow); }
+        .login-card { background: white; padding: 40px; border-radius: 30px; width: 280px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
         
-        /* LOGIN - Čistý a centrovaný */
-        #view-login { height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; background: var(--deeply-yellow); }
-        .login-card { background: white; padding: 40px 30px; border-radius: 35px; width: 280px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); text-align: center; }
-        .login-card h1 { margin: 0 0 20px 0; font-size: 32px; font-weight: 900; letter-spacing: -2px; }
-        
-        /* HEADER - Pôvodný štýl */
-        header { background: var(--deeply-yellow); padding: 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-        .header-title { font-weight: 900; font-size: 22px; letter-spacing: -1px; }
-        
-        /* CONTAINER & CARDS */
-        .container { padding: 15px; max-width: 500px; margin: auto; }
-        .p-card { 
-            background: white; margin-bottom: 15px; padding: 25px; border-radius: 25px; 
-            display: flex; justify-content: space-between; align-items: center;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05); cursor: pointer; font-weight: 800; font-size: 18px;
-        }
-        
-        /* DETAIL SKLADU */
-        .detail-header { display: flex; align-items: center; margin-bottom: 20px; padding: 0 10px; }
-        .back-btn { background: white; border: none; width: 45px; height: 45px; border-radius: 15px; font-size: 20px; font-weight: bold; cursor: pointer; margin-right: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        
-        .item-card { background: white; border-radius: 25px; padding: 10px 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        .item-row { display: flex; justify-content: space-between; align-items: center; padding: 18px 0; border-bottom: 1px solid #f0f0f0; }
-        .item-row:last-child { border-bottom: none; }
-        .item-name { font-weight: 600; font-size: 16px; }
+        /* HEADER */
+        header { background: var(--yellow); padding: 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; font-weight: 900; font-size: 20px; }
+        .nav-btn { background: rgba(255,255,255,0.4); border: none; padding: 10px; border-radius: 12px; cursor: pointer; font-size: 20px; }
 
-        /* KONTROLKY QTY */
-        .qty-box { display: flex; align-items: center; gap: 12px; background: #f8f8f8; padding: 6px; border-radius: 18px; }
-        .btn-q { width: 42px; height: 42px; border: none; border-radius: 14px; background: white; font-size: 20px; font-weight: 800; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
-        .btn-q:active { background: var(--deeply-yellow); }
-        .qty-val { min-width: 35px; text-align: center; font-weight: 800; font-size: 18px; }
-
-        /* ADMIN & INPUTS */
-        input, select { width: 100%; padding: 16px; margin: 8px 0; border-radius: 18px; border: 2px solid #f0f0f0; background: #f9f9f9; font-size: 16px; outline: none; box-sizing: border-box; }
-        input:focus { border-color: var(--deeply-yellow); }
-        .btn-main { width: 100%; padding: 18px; background: var(--deeply-dark); color: white; border: none; border-radius: 20px; font-weight: 800; font-size: 16px; cursor: pointer; margin-top: 10px; }
+        .container { padding: 15px; max-width: 600px; margin: auto; }
         
+        /* KATEGÓRIE (Sklady vs Prevádzky) */
+        .cat-nav { display: flex; gap: 10px; margin-bottom: 20px; }
+        .cat-btn { flex: 1; padding: 12px; border-radius: 15px; border: none; background: white; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .cat-btn.active { background: var(--dark); color: white; }
+
+        /* KARTY */
+        .card { background: white; border-radius: 20px; padding: 20px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); cursor: pointer; }
+        .card h3 { margin: 0; font-size: 18px; }
+        .card-info { font-size: 12px; color: #888; margin-top: 5px; }
+
+        /* TABS (Materiál / Pomôcky / Checklist) */
+        .tabs { display: flex; border-bottom: 2px solid #eee; margin-bottom: 15px; }
+        .tab { flex: 1; padding: 10px; text-align: center; font-weight: bold; color: #aaa; cursor: pointer; }
+        .tab.active { color: var(--dark); border-bottom: 3px solid var(--yellow); }
+
+        /* POLOŽKY */
+        .item-row { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #f5f5f5; }
+        .qty-ctrl { display: flex; align-items: center; gap: 15px; background: #f9f9f9; padding: 5px; border-radius: 15px; }
+        .btn-q { width: 40px; height: 40px; border-radius: 12px; border: none; background: white; font-weight: bold; font-size: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .qty-val { font-weight: 900; min-width: 30px; text-align: center; }
+
         .hidden { display: none !important; }
-        .admin-icon { font-size: 24px; cursor: pointer; background: rgba(255,255,255,0.3); border-radius: 12px; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; }
+        input, select { width: 100%; padding: 15px; margin: 10px 0; border-radius: 15px; border: 1px solid #ddd; box-sizing: border-box; font-size: 16px; }
+        .btn-main { width: 100%; padding: 18px; background: var(--dark); color: white; border: none; border-radius: 15px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div id="view-login">
     <div class="login-card">
-        <h1>DEEPLY</h1>
+        <h1 style="letter-spacing:-2px;">DEEPLY</h1>
         <input type="text" id="l-u" placeholder="Meno">
         <input type="password" id="l-p" placeholder="Heslo">
-        <button class="btn-main" onclick="tryLogin()">VSTÚPIŤ</button>
+        <button class="btn-main" onclick="tryLogin()">PRIHLÁSIŤ SA</button>
     </div>
 </div>
 
 <div id="view-app" class="hidden">
     <header>
-        <div class="header-title">DEEPLY</div>
+        <span>DEEPLY</span>
         <div style="display:flex; gap:10px;">
-            <div id="admin-btn" class="admin-icon hidden" onclick="showView('view-admin')">⚙️</div>
-            <div class="admin-icon" onclick="location.reload()">🚪</div>
+            <button id="admin-btn" class="nav-btn hidden" onclick="showView('view-admin')">⚙️</button>
+            <button class="nav-btn" onclick="location.reload()">🚪</button>
         </div>
     </header>
 
     <div class="container">
         <div id="view-list">
-            <h2 style="padding-left:10px; margin-bottom:20px;">Prevádzky</h2>
+            <div class="cat-nav">
+                <button class="cat-btn active" onclick="setCat('sklad', this)">Sklady</button>
+                <button class="cat-btn" onclick="setCat('prevadzka', this)">Prevádzky</button>
+            </div>
             <div id="p-list"></div>
         </div>
 
         <div id="view-detail" class="hidden">
-            <div class="detail-header">
-                <button class="back-btn" onclick="showView('view-list')">←</button>
-                <h2 id="det-title" style="margin:0;">-</h2>
+            <button onclick="showView('view-list')" style="background:none; border:none; font-weight:bold; margin-bottom:15px; cursor:pointer;">← SPÄŤ</button>
+            <h2 id="det-title" style="margin:0 0 5px 0;">-</h2>
+            <div id="det-last-check" class="card-info" style="margin-bottom:20px;">Posledná kontrola: nikdy</div>
+
+            <div class="tabs">
+                <div class="tab active" onclick="setTab('material', this)">Materiál</div>
+                <div class="tab" onclick="setTab('pomocky', this)">Pomôcky</div>
+                <div id="tab-check-btn" class="tab" onclick="setTab('checklist', this)">Checklist</div>
+                <div class="tab" onclick="setTab('historia', this)">História</div>
             </div>
-            <div class="item-card">
-                <div id="det-items"></div>
-                <div id="manager-add" class="hidden" style="margin-top:20px; border-top: 2px solid #f0f0f0; padding-top:20px;">
-                    <input type="text" id="new-it-name" placeholder="Názov novej položky">
-                    <button class="btn-main" onclick="dbAddItem()">+ PRIDAŤ DO ZOZNAMU</button>
-                </div>
-            </div>
+
+            <div id="tab-content" class="card"></div>
         </div>
 
         <div id="view-admin" class="hidden">
-            <div class="detail-header">
-                <button class="back-btn" onclick="showView('view-list')">←</button>
-                <h2 style="margin:0;">Administrácia</h2>
-            </div>
-            <div class="item-card" style="padding: 20px;">
-                <h3 style="margin-top:0;">Nový užívateľ</h3>
+            <button onclick="showView('view-list')" style="background:none; border:none; font-weight:bold; margin-bottom:15px;">← SPÄŤ</button>
+            <h2>Administrácia</h2>
+            <div class="card">
+                <h3>Pridať užívateľa</h3>
                 <input type="text" id="adm-u-name" placeholder="Meno">
                 <input type="text" id="adm-u-pass" placeholder="Heslo">
                 <select id="adm-u-role">
                     <option value="supervisor">Supervisor</option>
                     <option value="manager">Manager</option>
-                    <option value="upratovac">Upratovač</option>
                 </select>
-                <button class="btn-main" onclick="dbAddUser()">VYTVORIŤ ÚČET</button>
-                <div id="user-list-ui" style="margin-top:25px;"></div>
+                <button class="btn-main" onclick="dbAddUser()">ULOŽIŤ</button>
+                <div id="user-list-ui" style="margin-top:15px;"></div>
             </div>
-            <div class="item-card" style="padding: 20px; margin-top:15px;">
-                <h3 style="margin-top:0;">Nová prevádzka</h3>
-                <input type="text" id="adm-p-name" placeholder="Názov skladu">
+            <div class="card">
+                <h3>Vytvoriť prevádzku/sklad</h3>
+                <input type="text" id="adm-p-name" placeholder="Názov">
+                <select id="adm-p-type">
+                    <option value="sklad">Sklad</option>
+                    <option value="prevadzka">Prevádzka</option>
+                </select>
                 <button class="btn-main" onclick="dbAddP()">VYTVORIŤ</button>
             </div>
         </div>
@@ -131,6 +130,8 @@
     const db = firebase.database();
 
     let currentUser = null;
+    let aktCat = 'sklad';
+    let aktTab = 'material';
     let aktP = "";
 
     function tryLogin() {
@@ -142,26 +143,29 @@
                 currentUser = { name: u, role: d.role };
                 document.getElementById('view-login').classList.add('hidden');
                 document.getElementById('view-app').classList.remove('hidden');
-                if(d.role === 'manager') {
-                    document.getElementById('admin-btn').classList.remove('hidden');
-                    document.getElementById('manager-add').classList.remove('hidden');
-                    loadUsersList();
-                }
+                if(d.role === 'manager') document.getElementById('admin-btn').classList.remove('hidden');
                 initApp();
-            } else { alert("Chyba: Skontroluj meno a heslo."); }
+            } else { alert("Chyba prihlásenia."); }
         });
+    }
+
+    function setCat(c, btn) {
+        aktCat = c;
+        document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        initApp();
     }
 
     function initApp() {
         db.ref('prevadzky').on('value', snap => {
             const list = document.getElementById('p-list');
             list.innerHTML = "";
-            Object.keys(snap.val() || {}).forEach(p => {
-                const div = document.createElement('div');
-                div.className = 'p-card';
-                div.innerHTML = `<span>📦 ${p}</span> <span style="font-size:12px; color:#bbb;">OTVORIŤ</span>`;
-                div.onclick = () => openP(p);
-                list.appendChild(div);
+            const data = snap.val() || {};
+            Object.keys(data).forEach(p => {
+                if(data[p]._type === aktCat) {
+                    const last = data[p]._lastCheck || "Nikdy";
+                    list.innerHTML += `<div class="card" onclick="openP('${p}')"><h3>${p}</h3><div class="card-info">Posledná kontrola: ${last}</div></div>`;
+                }
             });
         });
     }
@@ -170,53 +174,86 @@
         aktP = p;
         showView('view-detail');
         document.getElementById('det-title').innerText = p;
-        db.ref('prevadzky/' + p).on('value', snap => {
-            const items = snap.val() || {};
-            const cont = document.getElementById('det-items');
+        // Skryť checklist ak ide o sklad
+        db.ref('prevadzky/'+p+'/_type').once('value', s => {
+            document.getElementById('tab-check-btn').style.display = (s.val() === 'sklad') ? 'none' : 'block';
+        });
+        loadTab();
+    }
+
+    function setTab(t, btn) {
+        aktTab = t;
+        document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        loadTab();
+    }
+
+    function loadTab() {
+        const cont = document.getElementById('tab-content');
+        cont.innerHTML = "Načítavam...";
+        
+        db.ref(`prevadzky/${aktP}`).on('value', snap => {
+            const data = snap.val() || {};
+            document.getElementById('det-last-check').innerText = "Posledná kontrola: " + (data._lastCheck || "Nikdy");
             cont.innerHTML = "";
-            Object.keys(items).filter(k => !k.startsWith('_')).forEach(it => {
-                cont.innerHTML += `
-                    <div class="item-row">
-                        <span class="item-name">${it}</span>
-                        <div class="qty-box">
-                            <button class="btn-q" onclick="changeQty('${it}',-1)">-</button>
-                            <span class="qty-val">${items[it]}</span>
-                            <button class="btn-q" onclick="changeQty('${it}',1)">+</button>
-                        </div>
-                    </div>`;
-            });
+
+            if(aktTab === 'material' || aktTab === 'pomocky') {
+                const items = data[aktTab] || {};
+                Object.keys(items).forEach(it => {
+                    cont.innerHTML += `<div class="item-row"><span>${it}</span><div class="qty-ctrl"><button class="btn-q" onclick="changeQty('${aktTab}','${it}',-1)">-</button><span class="qty-val">${items[it]}</span><button class="btn-q" onclick="changeQty('${aktTab}','${it}',1)">+</button></div></div>`;
+                });
+                if(currentUser.role === 'manager') {
+                    cont.innerHTML += `<input type="text" id="new-it" placeholder="Názov"><button class="btn-main" onclick="addItem()">+ PRIDAŤ</button>`;
+                }
+            } else if(aktTab === 'historia') {
+                const hist = data._historia || {};
+                Object.values(hist).reverse().slice(0,10).forEach(h => {
+                    cont.innerHTML += `<div style="font-size:13px; padding:10px 0; border-bottom:1px solid #eee;"><b>${h.time}</b> - ${h.user}: ${h.msg}</div>`;
+                });
+            }
         });
     }
 
-    function changeQty(it, d) { db.ref(`prevadzky/${aktP}/${it}`).transaction(c => (c || 0) + d); }
-
-    function loadUsersList() {
-        db.ref('users').on('value', snap => {
-            const cont = document.getElementById('user-list-ui');
-            cont.innerHTML = "<h4 style='margin-bottom:10px;'>Existujúce účty:</h4>";
-            const users = snap.val() || {};
-            Object.keys(users).forEach(u => {
-                cont.innerHTML += `<div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #f0f0f0; align-items:center;">
-                    <span><strong>${u}</strong> (${users[u].role})</span>
-                    ${u !== 'manager' ? `<button onclick="dbDelUser('${u}')" style="background:none; border:none; color:red; font-weight:bold; cursor:pointer;">Zmazať</button>` : ''}
-                </div>`;
-            });
-        });
+    function changeQty(cat, it, d) {
+        const time = new Date().toLocaleString('sk-SK');
+        db.ref(`prevadzky/${aktP}/${cat}/${it}`).transaction(c => (c || 0) + d);
+        db.ref(`prevadzky/${aktP}/_historia`).push({ time, user: currentUser.name, msg: `${d > 0 ? 'Pridané' : 'Odobrané'} ${Math.abs(d)}x ${it}` });
+        db.ref(`prevadzky/${aktP}/_lastCheck`).set(time);
     }
 
+    function addItem() {
+        const n = document.getElementById('new-it').value.trim();
+        if(n) db.ref(`prevadzky/${aktP}/${aktTab}/${n}`).set(0);
+    }
+
+    // ADMIN FUNKCIE
     function dbAddUser() {
         const u = document.getElementById('adm-u-name').value.trim().toLowerCase();
         const p = document.getElementById('adm-u-pass').value.trim();
         const r = document.getElementById('adm-u-role').value;
-        if(u && p) db.ref('users/' + u).set({ pass: p, role: r }).then(() => {
-            document.getElementById('adm-u-name').value = ""; document.getElementById('adm-u-pass').value = "";
+        if(u && p) db.ref('users/' + u).set({ pass: p, role: r });
+    }
+
+    function dbAddP() {
+        const n = document.getElementById('adm-p-name').value.trim();
+        const t = document.getElementById('adm-p-type').value;
+        if(n) db.ref('prevadzky/' + n).set({ _type: t, material: { "Vrecia": 0 }, pomocky: { "Mop": 0 } });
+    }
+
+    function loadUsersList() {
+        db.ref('users').on('value', snap => {
+            const ui = document.getElementById('user-list-ui');
+            ui.innerHTML = "";
+            Object.keys(snap.val() || {}).forEach(u => {
+                ui.innerHTML += `<div style="display:flex; justify-content:space-between; padding:5px 0;"><span>${u}</span><button onclick="db.ref('users/${u}').remove()" style="color:red; border:none; background:none;">✖</button></div>`;
+            });
         });
     }
 
-    function dbDelUser(u) { if(confirm("Zmazať účet?")) db.ref('users/' + u).remove(); }
-    function dbAddP() { const n = document.getElementById('adm-p-name').value.trim(); if(n) db.ref('prevadzky/' + n).set({ _init: true }); }
-    function dbAddItem() { const n = document.getElementById('new-it-name').value.trim(); if(n) db.ref(`prevadzky/${aktP}/${n}`).set(0); }
-    function showView(id) { ['view-list', 'view-detail', 'view-admin'].forEach(v => document.getElementById(v).classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); }
+    function showView(id) {
+        ['view-list', 'view-detail', 'view-admin'].forEach(v => document.getElementById(v).classList.add('hidden'));
+        document.getElementById(id).classList.remove('hidden');
+    }
 </script>
 </body>
 </html>
