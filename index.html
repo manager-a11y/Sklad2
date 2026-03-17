@@ -7,101 +7,56 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <style>
-        :root { 
-            --deeply-yellow: #FFD700; 
-            --deeply-dark: #1a1a1a; 
-            --bg: #f8f9fa; 
-            --card-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        :root { --deeply-yellow: #FFD700; --deeply-dark: #1a1a1a; --bg: #f2f2f7; }
+        
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; background: var(--bg); color: var(--deeply-dark); -webkit-tap-highlight-color: transparent; }
+        
+        /* LOGIN - Čistý a centrovaný */
+        #view-login { height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; background: var(--deeply-yellow); }
+        .login-card { background: white; padding: 40px 30px; border-radius: 35px; width: 280px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); text-align: center; }
+        .login-card h1 { margin: 0 0 20px 0; font-size: 32px; font-weight: 900; letter-spacing: -2px; }
+        
+        /* HEADER - Pôvodný štýl */
+        header { background: var(--deeply-yellow); padding: 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .header-title { font-weight: 900; font-size: 22px; letter-spacing: -1px; }
+        
+        /* CONTAINER & CARDS */
+        .container { padding: 15px; max-width: 500px; margin: auto; }
+        .p-card { 
+            background: white; margin-bottom: 15px; padding: 25px; border-radius: 25px; 
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05); cursor: pointer; font-weight: 800; font-size: 18px;
         }
         
-        body { font-family: 'Segoe UI', Roboto, sans-serif; margin: 0; background: var(--bg); color: var(--deeply-dark); }
+        /* DETAIL SKLADU */
+        .detail-header { display: flex; align-items: center; margin-bottom: 20px; padding: 0 10px; }
+        .back-btn { background: white; border: none; width: 45px; height: 45px; border-radius: 15px; font-size: 20px; font-weight: bold; cursor: pointer; margin-right: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
         
-        /* HEADER & NAV */
-        header { 
-            background: var(--deeply-yellow); 
-            padding: 15px 20px; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            position: sticky; 
-            top: 0; 
-            z-index: 100; 
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        .logo-text { font-weight: 900; letter-spacing: -1px; font-size: 20px; }
-        .nav-btn { background: white; border: none; padding: 8px 12px; border-radius: 10px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-
-        /* LOGIN SCREEN */
-        #view-login { height: 100vh; display: flex; justify-content: center; align-items: center; background: var(--deeply-yellow); }
-        .login-box { background: white; padding: 40px 30px; border-radius: 30px; width: 300px; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.15); }
-
-        /* CARDS & LAYOUT */
-        .container { padding: 20px; max-width: 600px; margin: auto; }
-        .card { 
-            background: white; 
-            margin-bottom: 15px; 
-            padding: 20px; 
-            border-radius: 20px; 
-            box-shadow: var(--card-shadow); 
-            transition: transform 0.2s;
-        }
-        .card:active { transform: scale(0.98); }
-        .p-card { display: flex; align-items: center; justify-content: space-between; font-weight: bold; cursor: pointer; }
-
-        /* ITEMS & CONTROLS */
-        .item-row { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            padding: 15px 0; 
-            border-bottom: 1px solid #f0f0f0; 
-        }
+        .item-card { background: white; border-radius: 25px; padding: 10px 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .item-row { display: flex; justify-content: space-between; align-items: center; padding: 18px 0; border-bottom: 1px solid #f0f0f0; }
         .item-row:last-child { border-bottom: none; }
-        .qty-ctrl { display: flex; gap: 15px; align-items: center; }
-        .btn-qty { 
-            width: 45px; 
-            height: 45px; 
-            border-radius: 12px; 
-            border: none; 
-            background: #f0f0f0; 
-            font-size: 22px; 
-            font-weight: bold; 
-            color: var(--deeply-dark);
-        }
-        .btn-qty:active { background: var(--deeply-yellow); }
+        .item-name { font-weight: 600; font-size: 16px; }
 
-        /* FORM ELEMENTS */
-        input, select { 
-            width: 100%; 
-            padding: 14px; 
-            margin: 10px 0; 
-            border-radius: 12px; 
-            border: 1px solid #eee; 
-            background: #fafafa;
-            font-size: 16px;
-        }
-        .btn-main { 
-            width: 100%; 
-            padding: 16px; 
-            background: var(--deeply-dark); 
-            color: white; 
-            border: none; 
-            border-radius: 15px; 
-            font-weight: bold; 
-            font-size: 16px; 
-            margin-top: 10px;
-        }
+        /* KONTROLKY QTY */
+        .qty-box { display: flex; align-items: center; gap: 12px; background: #f8f8f8; padding: 6px; border-radius: 18px; }
+        .btn-q { width: 42px; height: 42px; border: none; border-radius: 14px; background: white; font-size: 20px; font-weight: 800; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
+        .btn-q:active { background: var(--deeply-yellow); }
+        .qty-val { min-width: 35px; text-align: center; font-weight: 800; font-size: 18px; }
 
+        /* ADMIN & INPUTS */
+        input, select { width: 100%; padding: 16px; margin: 8px 0; border-radius: 18px; border: 2px solid #f0f0f0; background: #f9f9f9; font-size: 16px; outline: none; box-sizing: border-box; }
+        input:focus { border-color: var(--deeply-yellow); }
+        .btn-main { width: 100%; padding: 18px; background: var(--deeply-dark); color: white; border: none; border-radius: 20px; font-weight: 800; font-size: 16px; cursor: pointer; margin-top: 10px; }
+        
         .hidden { display: none !important; }
-        .tag { font-size: 10px; padding: 3px 8px; border-radius: 6px; background: rgba(0,0,0,0.05); margin-left: 8px; text-transform: uppercase; }
+        .admin-icon { font-size: 24px; cursor: pointer; background: rgba(255,255,255,0.3); border-radius: 12px; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; }
     </style>
 </head>
 <body>
 
 <div id="view-login">
-    <div class="login-box">
-        <h1 style="margin:0 0 10px 0; letter-spacing: -2px;">DEEPLY</h1>
-        <p style="color: gray; margin-bottom: 25px;">Skladový systém</p>
+    <div class="login-card">
+        <h1>DEEPLY</h1>
         <input type="text" id="l-u" placeholder="Meno">
         <input type="password" id="l-p" placeholder="Heslo">
         <button class="btn-main" onclick="tryLogin()">VSTÚPIŤ</button>
@@ -110,57 +65,54 @@
 
 <div id="view-app" class="hidden">
     <header>
-        <div class="logo-text">DEEPLY <span id="user-tag" class="tag"></span></div>
+        <div class="header-title">DEEPLY</div>
         <div style="display:flex; gap:10px;">
-            <button id="admin-btn" class="nav-btn hidden" onclick="showView('view-admin')">⚙️</button>
-            <button class="nav-btn" onclick="location.reload()">🚪</button>
+            <div id="admin-btn" class="admin-icon hidden" onclick="showView('view-admin')">⚙️</div>
+            <div class="admin-icon" onclick="location.reload()">🚪</div>
         </div>
     </header>
 
     <div class="container">
         <div id="view-list">
-            <h2 style="margin-bottom: 20px;">Moje prevádzky</h2>
+            <h2 style="padding-left:10px; margin-bottom:20px;">Prevádzky</h2>
             <div id="p-list"></div>
         </div>
 
         <div id="view-detail" class="hidden">
-            <div style="display: flex; align-items: center; margin-bottom: 20px;">
-                <button onclick="showView('view-list')" style="background:none; border:none; font-size: 20px; cursor:pointer; padding-right:15px;">←</button>
+            <div class="detail-header">
+                <button class="back-btn" onclick="showView('view-list')">←</button>
                 <h2 id="det-title" style="margin:0;">-</h2>
             </div>
-            
-            <div class="card">
-                <h3 style="margin-top:0;">Stav zásob</h3>
+            <div class="item-card">
                 <div id="det-items"></div>
-                
-                <div id="manager-tools" class="hidden" style="margin-top:20px; border-top: 2px dashed #eee; padding-top:20px;">
+                <div id="manager-add" class="hidden" style="margin-top:20px; border-top: 2px solid #f0f0f0; padding-top:20px;">
                     <input type="text" id="new-it-name" placeholder="Názov novej položky">
-                    <button class="btn-main" onclick="dbAddItem()">+ PRIDAŤ DO SKLADU</button>
+                    <button class="btn-main" onclick="dbAddItem()">+ PRIDAŤ DO ZOZNAMU</button>
                 </div>
             </div>
         </div>
 
         <div id="view-admin" class="hidden">
-            <button onclick="showView('view-list')" style="background:none; border:none; font-weight:bold; margin-bottom:20px;">← SPÄŤ</button>
-            <h2>Nastavenia systému</h2>
-            
-            <div class="card">
-                <h3>👥 Užívatelia</h3>
+            <div class="detail-header">
+                <button class="back-btn" onclick="showView('view-list')">←</button>
+                <h2 style="margin:0;">Administrácia</h2>
+            </div>
+            <div class="item-card" style="padding: 20px;">
+                <h3 style="margin-top:0;">Nový užívateľ</h3>
                 <input type="text" id="adm-u-name" placeholder="Meno">
                 <input type="text" id="adm-u-pass" placeholder="Heslo">
                 <select id="adm-u-role">
                     <option value="supervisor">Supervisor</option>
-                    <option value="upratovac">Upratovač</option>
                     <option value="manager">Manager</option>
+                    <option value="upratovac">Upratovač</option>
                 </select>
                 <button class="btn-main" onclick="dbAddUser()">VYTVORIŤ ÚČET</button>
-                <div id="user-list-ui" style="margin-top:20px;"></div>
+                <div id="user-list-ui" style="margin-top:25px;"></div>
             </div>
-
-            <div class="card">
-                <h3>📦 Nová prevádzka</h3>
-                <input type="text" id="adm-p-name" placeholder="Názov (napr. Sklad Nitra)">
-                <button class="btn-main" onclick="dbAddP()">VYTVORIŤ PREVÁDZKU</button>
+            <div class="item-card" style="padding: 20px; margin-top:15px;">
+                <h3 style="margin-top:0;">Nová prevádzka</h3>
+                <input type="text" id="adm-p-name" placeholder="Názov skladu">
+                <button class="btn-main" onclick="dbAddP()">VYTVORIŤ</button>
             </div>
         </div>
     </div>
@@ -190,15 +142,13 @@
                 currentUser = { name: u, role: d.role };
                 document.getElementById('view-login').classList.add('hidden');
                 document.getElementById('view-app').classList.remove('hidden');
-                document.getElementById('user-tag').innerText = d.role;
-                
                 if(d.role === 'manager') {
                     document.getElementById('admin-btn').classList.remove('hidden');
-                    document.getElementById('manager-tools').classList.remove('hidden');
+                    document.getElementById('manager-add').classList.remove('hidden');
                     loadUsersList();
                 }
                 initApp();
-            } else { alert("Skús to znova, meno alebo heslo nesedí."); }
+            } else { alert("Chyba: Skontroluj meno a heslo."); }
         });
     }
 
@@ -208,8 +158,8 @@
             list.innerHTML = "";
             Object.keys(snap.val() || {}).forEach(p => {
                 const div = document.createElement('div');
-                div.className = 'card p-card';
-                div.innerHTML = `<span>📦 ${p}</span> <span style="color:#ccc;">→</span>`;
+                div.className = 'p-card';
+                div.innerHTML = `<span>📦 ${p}</span> <span style="font-size:12px; color:#bbb;">OTVORIŤ</span>`;
                 div.onclick = () => openP(p);
                 list.appendChild(div);
             });
@@ -227,11 +177,11 @@
             Object.keys(items).filter(k => !k.startsWith('_')).forEach(it => {
                 cont.innerHTML += `
                     <div class="item-row">
-                        <span style="font-weight:500;">${it}</span>
-                        <div class="qty-ctrl">
-                            <button class="btn-qty" onclick="changeQty('${it}',-1)">-</button>
-                            <b style="min-width:40px; text-align:center; font-size:18px;">${items[it]}</b>
-                            <button class="btn-qty" onclick="changeQty('${it}',1)">+</button>
+                        <span class="item-name">${it}</span>
+                        <div class="qty-box">
+                            <button class="btn-q" onclick="changeQty('${it}',-1)">-</button>
+                            <span class="qty-val">${items[it]}</span>
+                            <button class="btn-q" onclick="changeQty('${it}',1)">+</button>
                         </div>
                     </div>`;
             });
@@ -243,13 +193,12 @@
     function loadUsersList() {
         db.ref('users').on('value', snap => {
             const cont = document.getElementById('user-list-ui');
-            cont.innerHTML = "<p style='color:gray; font-size:14px;'>Zoznam prístupov:</p>";
+            cont.innerHTML = "<h4 style='margin-bottom:10px;'>Existujúce účty:</h4>";
             const users = snap.val() || {};
             Object.keys(users).forEach(u => {
-                const isMe = u === currentUser.name;
-                cont.innerHTML += `<div style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid #f9f9f9;">
-                    <span><strong>${u}</strong> <span class="tag">${users[u].role}</span></span>
-                    ${(!isMe && u !== 'manager') ? `<button onclick="dbDelUser('${u}')" style="color:var(--red); border:none; background:none; font-weight:bold; cursor:pointer;">Vymazať</button>` : ''}
+                cont.innerHTML += `<div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #f0f0f0; align-items:center;">
+                    <span><strong>${u}</strong> (${users[u].role})</span>
+                    ${u !== 'manager' ? `<button onclick="dbDelUser('${u}')" style="background:none; border:none; color:red; font-weight:bold; cursor:pointer;">Zmazať</button>` : ''}
                 </div>`;
             });
         });
@@ -260,12 +209,11 @@
         const p = document.getElementById('adm-u-pass').value.trim();
         const r = document.getElementById('adm-u-role').value;
         if(u && p) db.ref('users/' + u).set({ pass: p, role: r }).then(() => {
-            document.getElementById('adm-u-name').value = "";
-            document.getElementById('adm-u-pass').value = "";
+            document.getElementById('adm-u-name').value = ""; document.getElementById('adm-u-pass').value = "";
         });
     }
 
-    function dbDelUser(u) { if(confirm("Odobrať prístup užívateľovi " + u + "?")) db.ref('users/' + u).remove(); }
+    function dbDelUser(u) { if(confirm("Zmazať účet?")) db.ref('users/' + u).remove(); }
     function dbAddP() { const n = document.getElementById('adm-p-name').value.trim(); if(n) db.ref('prevadzky/' + n).set({ _init: true }); }
     function dbAddItem() { const n = document.getElementById('new-it-name').value.trim(); if(n) db.ref(`prevadzky/${aktP}/${n}`).set(0); }
     function showView(id) { ['view-list', 'view-detail', 'view-admin'].forEach(v => document.getElementById(v).classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); }
