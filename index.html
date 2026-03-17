@@ -1,16 +1,3 @@
-Rozumiem. To, že sa ti stav zo skladu kopíruje na všetky prevádzky, je chyba v logike prepojenia databázy, ktorú teraz opravíme. Každý objekt (sklad aj prevádzka) musí mať v databáze vlastný uzol so zásobami, aby boli od seba nezávislé.
-
-Tu je opravený a stabilizovaný kód, ktorý rieši presne to, čo žiadaš:
-
-Nezávislé zásoby: To, čo pridáš do Skladu, zostane v Sklade. To, čo pridáš na Prevádzku, je len na tej prevádzke.
-
-Príjem/Výdaj: Ako manažér v detaile Skladu naskladníš tovar od dodávateľa. Ak ho chceš poslať na prevádzku, jednoducho ho na prevádzke pripočítaš a v sklade odpočítaš (manuálne cez +/- tak, ako si chcel, bez zbytočných medzikrokov).
-
-Checklist & Semafor: Na každej prevádzke je checklist úloh. Až po jeho odoslaní sa aktualizuje dátum kontroly, ktorý sa zobrazuje priamo na úvodnej karte pod názvom.
-
-Kategorizácia: Hygiena, Chémia a Pomôcky sú pevne rozdelené.
-
-HTML
 <!DOCTYPE html>
 <html lang="sk">
 <head>
