@@ -7,30 +7,30 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <style>
-        :root { --deeply-yellow: #FFD700; --deeply-dark: #1a1a1a; --bg: #f4f4f4; }
+        :root { --deeply-yellow: #FFD700; --deeply-dark: #1a1a1a; --bg: #f4f4f4; --red: #e74c3c; }
         body { font-family: sans-serif; margin: 0; background: var(--bg); color: var(--deeply-dark); }
         
         /* LOGIN */
         #view-login { height: 100vh; display: flex; justify-content: center; align-items: center; background: var(--deeply-yellow); }
         .login-box { background: white; padding: 30px; border-radius: 20px; width: 300px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
         
-        /* APP */
+        /* HEADER */
         header { background: var(--deeply-yellow); padding: 15px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .nav-btn { background: rgba(0,0,0,0.1); border: none; padding: 8px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .nav-btn { background: rgba(0,0,0,0.1); border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         
         .container { padding: 15px; max-width: 600px; margin: auto; }
         .card { background: white; margin-bottom: 12px; padding: 20px; border-radius: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); cursor: pointer; }
         
         input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; font-size: 16px; }
-        .btn { width: 100%; padding: 15px; background: var(--deeply-dark); color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 5px; }
-        .btn-red { background: #e74c3c; }
+        .btn { width: 100%; padding: 15px; background: var(--deeply-dark); color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; }
+        .btn-small-red { background: var(--red); color: white; border: none; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; }
         
         .item-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #eee; }
-        .qty-btns { display: flex; gap: 10px; align-items: center; }
-        .btn-qty { width: 40px; height: 40px; border-radius: 10px; border: none; background: #eee; font-weight: bold; font-size: 18px; cursor: pointer; }
-        
         .hidden { display: none !important; }
-        .admin-section { background: #fff; padding: 20px; border-radius: 15px; margin-top: 20px; border: 2px solid var(--deeply-yellow); }
+        .admin-section { background: #fff; padding: 15px; border-radius: 15px; margin-top: 15px; border: 1px solid #ddd; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { text-align: left; padding: 10px; border-bottom: 1px solid #eee; }
     </style>
 </head>
 <body>
@@ -47,47 +47,64 @@
 
 <div id="view-app" class="hidden">
     <header>
-        <span style="font-weight:900; letter-spacing: -1px;">DEEPLY SYSTEM</span>
-        <div style="display:flex; gap:10px;">
-            <button id="admin-toggle" class="nav-btn hidden" onclick="showView('view-admin')">⚙️ Admin</button>
+        <span style="font-weight:900;">DEEPLY</span>
+        <div style="display:flex; gap:8px;">
+            <button title="Zmeniť heslo" class="nav-btn" onclick="showView('view-profile')">🔑</button>
+            <button id="admin-toggle" title="Admin" class="nav-btn hidden" onclick="showView('view-admin')">⚙️</button>
             <button class="nav-btn" onclick="location.reload()">🚪</button>
         </div>
     </header>
 
     <div class="container">
         <div id="view-list">
-            <h3 style="margin-top:0;">Moje prevádzky</h3>
+            <h3>Moje prevádzky</h3>
             <div id="p-list"></div>
         </div>
 
         <div id="view-detail" class="hidden">
-            <button onclick="showView('view-list')" style="background:none; border:none; color:#666; font-weight:bold; cursor:pointer; padding:0; margin-bottom:15px;">← SPÄŤ NA ZOZNAM</button>
-            <h2 id="det-title" style="margin:0 0 20px 0;">-</h2>
-            <div id="det-items" style="background:white; border-radius:15px; padding:15px;"></div>
+            <button onclick="showView('view-list')" style="background:none; border:none; color:#666; font-weight:bold; cursor:pointer; margin-bottom:15px;">← SPÄŤ</button>
+            <h2 id="det-title" style="margin:0;">-</h2>
+            <div id="det-items" style="background:white; border-radius:15px; padding:15px; margin-top:15px;"></div>
+        </div>
+
+        <div id="view-profile" class="hidden">
+            <button onclick="showView('view-list')" style="background:none; border:none; color:#666; font-weight:bold; cursor:pointer; margin-bottom:15px;">← SPÄŤ</button>
+            <h2>Môj profil</h2>
+            <div class="admin-section">
+                <p>Užívateľ: <strong id="prof-name"></strong></p>
+                <input type="password" id="new-p1" placeholder="Nové heslo">
+                <input type="password" id="new-p2" placeholder="Zopakuj nové heslo">
+                <button class="btn" onclick="changeMyPass()">ZMENIŤ MOJE HESLO</button>
+            </div>
         </div>
 
         <div id="view-admin" class="hidden">
-            <button onclick="showView('view-list')" style="background:none; border:none; color:#666; font-weight:bold; cursor:pointer; padding:0; margin-bottom:15px;">← SPÄŤ</button>
-            <h2>Správa systému</h2>
+            <button onclick="showView('view-list')" style="background:none; border:none; color:#666; font-weight:bold; cursor:pointer; margin-bottom:15px;">← SPÄŤ</button>
+            <h2>Administrácia</h2>
             
             <div class="admin-section">
-                <h4>Pridať nového užívateľa</h4>
-                <input type="text" id="adm-u-name" placeholder="Meno (napr. jano)">
-                <input type="text" id="adm-u-pass" placeholder="Heslo">
-                <button class="btn" onclick="dbAddUser()">ULOŽIŤ UŽÍVATEĽA</button>
+                <h4 style="margin:0 0 10px 0;">Správa užívateľov</h4>
+                <div style="margin-bottom:15px; border-bottom:1px solid #eee; padding-bottom:15px;">
+                    <input type="text" id="adm-u-name" placeholder="Nové meno">
+                    <input type="text" id="adm-u-pass" placeholder="Počiatočné heslo">
+                    <button class="btn" style="padding:10px;" onclick="dbAddUser()">+ PRIDAŤ</button>
+                </div>
+                <table>
+                    <thead><tr><th>Meno</th><th style="text-align:right;">Akcia</th></tr></thead>
+                    <tbody id="user-table-body"></tbody>
+                </table>
             </div>
 
             <div class="admin-section">
-                <h4>Vytvoriť novú prevádzku</h4>
-                <input type="text" id="adm-p-name" placeholder="Názov (napr. Sklad Trnava)">
-                <button class="btn" onclick="dbAddP()">VYTVORIŤ PREVÁDZKU</button>
+                <h4 style="margin:0 0 10px 0;">Nová prevádzka</h4>
+                <input type="text" id="adm-p-name" placeholder="Názov prevádzky">
+                <button class="btn" style="padding:10px;" onclick="dbAddP()">VYTVORIŤ</button>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    // KONFIGURÁCIA (deeply-72541)
     const firebaseConfig = {
         apiKey: "AIzaSyBKLGZn7_1rdSwej9ztFQH3aq3dMd0EvA4",
         authDomain: "deeply-72541.firebaseapp.com",
@@ -102,118 +119,97 @@
     let userRole = "";
     let aktP = "";
 
-    // PRIHLÁSENIE
     function tryLogin() {
         const u = document.getElementById('l-u').value.trim().toLowerCase();
         const p = document.getElementById('l-p').value.trim();
-        const err = document.getElementById('l-err');
-
         db.ref('users/' + u).once('value', snap => {
             if (snap.exists() && String(snap.val()) === String(p)) {
                 userRole = u;
                 document.getElementById('view-login').classList.add('hidden');
                 document.getElementById('view-app').classList.remove('hidden');
-                
-                // Ak je manager, ukáž Admin tlačidlo
-                if(u === 'manager') document.getElementById('admin-toggle').classList.remove('hidden');
-                
+                document.getElementById('prof-name').innerText = u;
+                if(u === 'manager') {
+                    document.getElementById('admin-toggle').classList.remove('hidden');
+                    loadUsersList();
+                }
                 initApp();
-            } else {
-                err.innerText = "Nesprávne meno alebo heslo.";
-            }
+            } else { alert("Nesprávne údaje."); }
         });
     }
 
-    // NAČÍTANIE DÁT
     function initApp() {
         db.ref('prevadzky').on('value', snap => {
             const list = document.getElementById('p-list');
             list.innerHTML = "";
-            const data = snap.val() || {};
-            
-            Object.keys(data).forEach(p => {
+            Object.keys(snap.val() || {}).forEach(p => {
                 const div = document.createElement('div');
                 div.className = 'card';
                 div.innerHTML = `<strong>📦 ${p}</strong>`;
                 div.onclick = () => openP(p);
                 list.appendChild(div);
             });
-            if(aktP) openP(aktP);
         });
     }
 
-    // DETAIL SKLADU
     function openP(p) {
         aktP = p;
         showView('view-detail');
         document.getElementById('det-title').innerText = p;
-        
         db.ref('prevadzky/' + p).on('value', snap => {
             const items = snap.val() || {};
             const container = document.getElementById('det-items');
             container.innerHTML = "";
-            
             Object.keys(items).filter(k => !k.startsWith('_')).forEach(it => {
-                container.innerHTML += `
-                    <div class="item-row">
-                        <span>${it}</span>
-                        <div class="qty-btns">
-                            <button class="btn-qty" onclick="changeQty('${it}', -1)">-</button>
-                            <span style="min-width:30px; text-align:center; font-weight:bold;">${items[it]}</span>
-                            <button class="btn-qty" onclick="changeQty('${it}', 1)">+</button>
-                        </div>
-                    </div>`;
+                container.innerHTML += `<div class="item-row"><span>${it}</span><div style="display:flex; gap:10px; align-items:center;"><button class="nav-btn" style="width:35px; height:35px; font-size:20px;" onclick="changeQty('${it}', -1)">-</button><b>${items[it]}</b><button class="nav-btn" style="width:35px; height:35px; font-size:20px;" onclick="changeQty('${it}', 1)">+</button></div></div>`;
             });
-            
-            // Možnosť pridať novú položku (len pre managera)
             if(userRole === 'manager') {
-                container.innerHTML += `
-                    <div style="margin-top:20px; border-top:1px solid #eee; padding-top:15px;">
-                        <input type="text" id="new-it-name" placeholder="Názov novej položky">
-                        <button class="btn" style="padding:10px;" onclick="dbAddItem()">+ PRIDAŤ POLOŽKU</button>
-                    </div>`;
+                container.innerHTML += `<div style="margin-top:20px; border-top:1px solid #eee; padding-top:10px;"><input type="text" id="new-it-name" placeholder="Názov položky"><button class="btn" style="padding:10px;" onclick="dbAddItem()">+ PRIDAŤ</button></div>`;
             }
         });
     }
 
-    function changeQty(it, d) {
-        db.ref(`prevadzky/${aktP}/${it}`).transaction(c => (c || 0) + d);
+    function changeQty(it, d) { db.ref(`prevadzky/${aktP}/${it}`).transaction(c => (c || 0) + d); }
+
+    function loadUsersList() {
+        db.ref('users').on('value', snap => {
+            const tbody = document.getElementById('user-table-body');
+            tbody.innerHTML = "";
+            const users = snap.val() || {};
+            Object.keys(users).forEach(u => {
+                if(u === 'manager') return; // Nemazať hlavného admina
+                tbody.innerHTML += `<tr><td>${u}</td><td style="text-align:right;"><button class="btn-small-red" onclick="deleteUser('${u}')">Vymazať</button></td></tr>`;
+            });
+        });
     }
 
-    // ADMIN FUNKCIE
     function dbAddUser() {
-        const name = document.getElementById('adm-u-name').value.trim().toLowerCase();
-        const pass = document.getElementById('adm-u-pass').value.trim();
-        if(!name || !pass) return alert("Vyplň všetko.");
-        
-        db.ref('users/' + name).set(pass).then(() => {
-            alert('Užívateľ pridaný.');
-            document.getElementById('adm-u-name').value = "";
-            document.getElementById('adm-u-pass').value = "";
-        });
+        const u = document.getElementById('adm-u-name').value.trim().toLowerCase();
+        const p = document.getElementById('adm-u-pass').value.trim();
+        if(u && p) db.ref('users/' + u).set(p).then(() => { alert("Užívateľ pridaný."); document.getElementById('adm-u-name').value=""; document.getElementById('adm-u-pass').value=""; });
+    }
+
+    function deleteUser(u) { if(confirm("Naozaj vymazať " + u + "?")) db.ref('users/' + u).remove(); }
+
+    function changeMyPass() {
+        const p1 = document.getElementById('new-p1').value.trim();
+        const p2 = document.getElementById('new-p2').value.trim();
+        if(p1 && p1 === p2) {
+            db.ref('users/' + userRole).set(p1).then(() => { alert("Heslo zmenené!"); document.getElementById('new-p1').value=""; document.getElementById('new-p2').value=""; showView('view-list'); });
+        } else { alert("Heslá sa nezhodujú."); }
     }
 
     function dbAddP() {
-        const name = document.getElementById('adm-p-name').value.trim();
-        if(!name) return;
-        db.ref('prevadzky/' + name).set({ "_init": true }).then(() => {
-            alert('Prevádzka vytvorená.');
-            document.getElementById('adm-p-name').value = "";
-            showView('view-list');
-        });
+        const n = document.getElementById('adm-p-name').value.trim();
+        if(n) db.ref('prevadzky/' + n).set({ "_init": true }).then(() => { alert("OK!"); document.getElementById('adm-p-name').value=""; showView('view-list'); });
     }
 
     function dbAddItem() {
-        const name = document.getElementById('new-it-name').value.trim();
-        if(!name) return;
-        db.ref(`prevadzky/${aktP}/${name}`).set(0);
+        const n = document.getElementById('new-it-name').value.trim();
+        if(n) db.ref(`prevadzky/${aktP}/${n}`).set(0);
     }
 
-    // NAVIGÁCIA
     function showView(id) {
-        ['view-list', 'view-detail', 'view-admin'].forEach(v => {
-            document.getElementById(v).classList.add('hidden');
-        });
+        ['view-list', 'view-detail', 'view-admin', 'view-profile'].forEach(v => document.getElementById(v).classList.add('hidden'));
         document.getElementById(id).classList.remove('hidden');
     }
 </script>
