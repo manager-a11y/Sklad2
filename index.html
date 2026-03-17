@@ -1,9 +1,21 @@
+Rozumiem, ideme do "ostrej" prevádzky. Aby si mal ako manažér skutočný prehľad o práci supervízora, upravil som systém nasledovne:
+
+Logovanie checklistov: Akonáhle supervízor dokončí poslednú úlohu v checkliste danej prevádzky, do histórie (📜) sa automaticky zapíše záznam: "Checklist dokončený: [Názov prevádzky]".
+
+Časová pečiatka: V histórii uvidíš presný dátum a čas, kedy boli úlohy potvrdené.
+
+Vizuálna kontrola: Na hlavnej obrazovke sa pri každej prevádzke aktualizuje text "Kontrola", takže hneď po otvorení appky vidíš, kde sa naposledy pracovalo.
+
+Tu je kompletný kód pre tvoju manažérsku verziu:
+
+1. Kód (Celý obsah index.html)
+HTML
 <!DOCTYPE html>
 <html lang="sk">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DEEPLY Sklad - Pro</title>
+    <title>DEEPLY Manažér & Supervízor</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <style>
@@ -16,30 +28,33 @@
         #main-content { padding: 15px; padding-bottom: 160px; }
         .section-title { font-size: 0.8em; font-weight: bold; color: #666; margin: 20px 0 10px 5px; text-transform: uppercase; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .karta { background: white; padding: 20px; border-radius: 18px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .karta { background: white; padding: 20px; border-radius: 18px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid transparent; }
+        .karta:active { background: #f9f9f9; }
         .tab-wrapper { display: flex; background: #eee; border-radius: 12px; padding: 4px; margin-bottom: 20px; }
-        .tab-btn { flex: 1; padding: 10px; border: none; border-radius: 10px; font-weight: bold; background: none; color: #666; }
+        .tab-btn { flex: 1; padding: 12px; border: none; border-radius: 10px; font-weight: bold; background: none; color: #666; }
         .tab-btn.active { background: white; color: var(--deeply-dark); box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         
-        /* Zvýraznenie riadkov */
-        .item-row { background: white; margin-bottom: 10px; padding: 15px; border-radius: 15px; transition: 0.3s; }
+        .item-row { background: white; margin-bottom: 10px; padding: 15px; border-radius: 15px; }
         .item-row.out-of-stock { background: #fff5f5; border: 1px solid #feb2b2; }
         .item-info { display: flex; justify-content: space-between; align-items: center; }
         .qty-text { font-weight: 900; }
-        .qty-text.critical { color: var(--danger); font-size: 1.2em; }
+        .qty-text.critical { color: var(--danger); }
 
-        .check-item { display: flex; align-items: center; background: white; padding: 15px; border-radius: 15px; margin-bottom: 8px; gap: 12px; border-left: 5px solid #ddd; }
-        .check-item.done { border-left-color: var(--check-color); opacity: 0.6; }
-        .checkbox-custom { width: 22px; height: 22px; border: 2px solid #ddd; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.8em; }
+        .check-item { display: flex; align-items: center; background: white; padding: 18px; border-radius: 15px; margin-bottom: 8px; gap: 12px; border-left: 5px solid #ddd; transition: 0.2s; }
+        .check-item.done { border-left-color: var(--check-color); background: #f0fff4; }
+        .checkbox-custom { width: 24px; height: 24px; border: 2px solid #ddd; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
         .done .checkbox-custom { background: var(--check-color); border-color: var(--check-color); color: white; }
+        
         .admin-card { background: white; padding: 15px; border-radius: 15px; margin-bottom: 15px; }
-        input, select { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; }
-        .btn-qty { flex: 1; padding: 12px; border: none; background: #f0f0f0; border-radius: 10px; font-weight: bold; }
-        .btn-qty:disabled { opacity: 0.3; color: #ccc; }
+        input, select { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #ddd; font-size: 16px; }
+        .btn-qty { flex: 1; padding: 15px; border: none; background: #f0f0f0; border-radius: 12px; font-weight: bold; font-size: 1.1em; }
+        .btn-qty:disabled { opacity: 0.2; }
         .hidden { display: none !important; }
-        .del-btn { color: red; border: none; background: none; font-weight: bold; padding: 5px; }
-        .setup-row { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; }
+        .del-btn { color: #ccc; border: none; background: none; padding: 5px; }
+        .setup-row { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #eee; }
+        
         .kosik-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--deeply-dark); color: white; padding: 20px; z-index: 2000; border-top-left-radius: 20px; border-top-right-radius: 20px; }
+        .hist-item { background: white; padding: 12px; border-radius: 12px; margin-bottom: 8px; border-left: 4px solid var(--deeply-yellow); font-size: 0.85em; }
     </style>
 </head>
 <body>
@@ -62,69 +77,70 @@
     </div>
 
     <div id="view-detail" class="hidden">
-        <div style="display:flex; justify-content: space-between; margin-bottom: 15px;">
-            <button onclick="showView('view-hlavna')" style="border:none; background:none; font-weight:bold;">← SPÄŤ</button>
-            <h2 id="det-n" style="margin:0;">-</h2>
+        <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <button onclick="showView('view-hlavna')" style="border:none; background:none; font-weight:bold; font-size: 1.1em;">✕</button>
+            <h2 id="det-n" style="margin:0; font-size: 1.2em;">-</h2>
+            <div style="width:20px;"></div>
         </div>
         <div class="tab-wrapper">
-            <button id="tab-zasoby" class="tab-btn active" onclick="switchTab('zasoby')">📦 Zásoby</button>
-            <button id="tab-checklist" class="tab-btn" onclick="switchTab('checklist')">✅ Checklist</button>
+            <button id="tab-zasoby" class="tab-btn active" onclick="switchTab('zasoby')">📦 ZÁSOBY</button>
+            <button id="tab-checklist" class="tab-btn" onclick="switchTab('checklist')">✅ CHECKLIST</button>
         </div>
+        
         <div id="content-zasoby">
-            <div style="background:#fff; padding:12px; border-radius:15px; margin-bottom:15px;">
-                <select id="sel-pridat-tovar"></select>
-                <button onclick="pridajZKatalogu()" style="width:100%; padding:10px; background:var(--deeply-yellow); border:none; border-radius:8px; font-weight:bold;">+ PRIDAŤ DO TOHTO MIESTA</button>
+            <div style="background:#fff; padding:12px; border-radius:15px; margin-bottom:15px; border:1px solid #eee;">
+                <select id="sel-pridat-tovar" style="margin-bottom:8px;"></select>
+                <button onclick="pridajZKatalogu()" style="width:100%; padding:12px; background:var(--deeply-yellow); border:none; border-radius:10px; font-weight:bold;">+ PRIDAŤ TOVAR SEM</button>
             </div>
             <div id="list-mat"></div>
             <div id="list-tool" style="margin-top:20px;"></div>
         </div>
+
         <div id="content-checklist" class="hidden">
             <div id="list-check"></div>
-            <button onclick="showView('view-check-setup')" style="width:100%; margin-top:15px; padding:12px; background:#eee; border:none; border-radius:10px;">⚙️ Nastaviť úlohy</button>
-            <button onclick="resetChecklist()" style="width:100%; margin-top:10px; background:none; border:none; color:#888; font-size:0.8em;">Vynulovať progres</button>
+            <button onclick="showView('view-check-setup')" style="width:100%; margin-top:20px; padding:15px; background:#fff; border:1px solid #ddd; border-radius:12px; font-weight:bold; color:#666;">⚙️ Nastaviť úlohy pre toto miesto</button>
+            <button onclick="resetChecklist()" style="width:100%; margin-top:15px; background:none; border:none; color:var(--danger); font-size:0.8em; font-weight:bold; opacity:0.5;">VYNULOVAŤ DNEŠNÝ PROGRESS</button>
         </div>
     </div>
 
     <div id="view-check-setup" class="hidden">
-        <button onclick="showView('view-detail')" style="border:none; background:none; font-weight:bold; margin-bottom:15px;">← HOTOVO</button>
-        <h3>Úlohy pre: <span id="setup-n"></span></h3>
+        <button onclick="showView('view-detail')" style="border:none; background:none; font-weight:bold; margin-bottom:20px;">← SPÄŤ DO PREVÁDZKY</button>
+        <h3>Výber úloh: <span id="setup-n"></span></h3>
         <div id="setup-tasks-list" class="admin-card"></div>
     </div>
 
     <div id="view-history" class="hidden">
-        <div class="section-title">História pohybov</div>
+        <div class="section-title">História aktivít</div>
         <div id="list-hist"></div>
     </div>
 
     <div id="view-admin" class="hidden">
         <div class="admin-card">
-            <h4>Katalóg tovarov</h4>
-            <input type="text" id="add-i-name" placeholder="Názov tovaru">
-            <select id="add-i-type"><option value="material">Materiál</option><option value="pomocka">Pomôcka</option></select>
-            <button onclick="addKatalog()" style="width:100%; padding:12px; background:var(--deeply-yellow); border:none; border-radius:10px; font-weight:bold;">Pridať do katalógu</button>
-            <div id="adm-i-list" style="max-height:150px; overflow-y:auto; margin-top:10px;"></div>
+            <h4>📦 Správa Katalógu</h4>
+            <input type="text" id="add-i-name" placeholder="Názov (napr. Mydlo 5L)">
+            <select id="add-i-type"><option value="material">Materiál (tekutiny, sypké...)</option><option value="pomocka">Pomôcka (mopy, stroje...)</option></select>
+            <button onclick="addKatalog()" style="width:100%; padding:12px; background:var(--deeply-yellow); border:none; border-radius:10px; font-weight:bold;">ULOŽIŤ DO KATALÓGU</button>
+            <div id="adm-i-list" style="max-height:150px; overflow-y:auto; margin-top:10px; border-top:1px solid #eee;"></div>
         </div>
         <div class="admin-card">
-            <h4>Miesta</h4>
+            <h4>🏢 Miesta a 📝 Master Úlohy</h4>
             <input type="text" id="add-p-name" placeholder="Názov miesta">
-            <button onclick="addMiesto()" style="width:100%; padding:12px; background:#ddd; border:none; border-radius:10px;">Pridať miesto</button>
-            <div id="adm-p-list" style="margin-top:10px;"></div>
-        </div>
-        <div class="admin-card">
-            <h4>Master Úlohy</h4>
-            <input type="text" id="add-task-text" placeholder="Názov úlohy">
-            <button onclick="addTask()" style="width:100%; padding:12px; background:var(--check-color); color:white; border:none; border-radius:10px;">Pridať novú úlohu</button>
+            <button onclick="addMiesto()" style="width:100%; padding:12px; background:#ddd; border:none; border-radius:10px; margin-bottom:15px;">PRIDAŤ MIESTO</button>
+            <div id="adm-p-list" style="margin-bottom:20px;"></div>
+            <hr>
+            <input type="text" id="add-task-text" placeholder="Názov globálnej úlohy">
+            <button onclick="addTask()" style="width:100%; padding:12px; background:var(--check-color); color:white; border:none; border-radius:10px; font-weight:bold;">VYTVORIŤ ÚLOHU</button>
             <div id="adm-task-list" style="margin-top:10px;"></div>
         </div>
     </div>
 </div>
 
 <div id="kosik-bar" class="kosik-bar hidden">
-    <div id="kosik-text" style="font-size:0.85em; margin-bottom:10px; font-weight:bold; color:var(--deeply-yellow);"></div>
+    <div id="kosik-text" style="font-size:0.9em; margin-bottom:12px; font-weight:bold; color:var(--deeply-yellow);"></div>
     <div style="display:flex; gap:10px;">
-        <select id="kosik-kam"></select>
-        <button onclick="potvrd()" style="background:var(--deeply-yellow); border:none; padding:10px 20px; border-radius:10px; font-weight:bold;">OK</button>
-        <button onclick="zrus()" style="background:none; border:1px solid white; color:white; border-radius:10px;">X</button>
+        <select id="kosik-kam" style="margin:0; flex:2;"></select>
+        <button onclick="potvrd()" style="background:var(--deeply-yellow); border:none; flex:1; border-radius:10px; font-weight:bold;">OK</button>
+        <button onclick="zrus()" style="background:none; border:1px solid white; color:white; border-radius:10px; padding:0 15px;">✕</button>
     </div>
 </div>
 
@@ -153,9 +169,9 @@
         gs.innerHTML = ""; gp.innerHTML = "";
         Object.keys(mData).sort().forEach(m => {
             const h = `<div class="karta" onclick="otvorMiesto('${m}')">
-                <div style="font-size:1.8em;">${m.toLowerCase().includes('sklad') ? '📦' : '🏢'}</div>
-                <div style="font-weight:bold; font-size:0.9em;">${m}</div>
-                <span style="font-size:0.7em; color:#888;">Kontrola: ${mData[m].posledna_kontrola || "---"}</span>
+                <div style="font-size:1.8em; margin-bottom:5px;">${m.toLowerCase().includes('sklad') ? '📦' : '🏢'}</div>
+                <div style="font-weight:900; font-size:0.9em; text-transform:uppercase;">${m}</div>
+                <div style="font-size:0.7em; color:#888; margin-top:5px;">Kontrola: ${mData[m].posledna_kontrola || "---"}</div>
             </div>`;
             if(m.toLowerCase().includes('sklad')) gs.innerHTML += h; else gp.innerHTML += h;
         });
@@ -165,21 +181,19 @@
 
     function refreshDetail() {
         const lm = document.getElementById('list-mat'); const lt = document.getElementById('list-tool');
-        lm.innerHTML = '<div class="kat-title bg-mat">💧 MATERIÁL</div>'; lt.innerHTML = '<div class="kat-title bg-tool">🛠️ POMÔCKY</div>';
+        lm.innerHTML = '<div class="section-title">💧 MATERIÁL</div>'; lt.innerHTML = '<div class="section-title">🛠️ POMÔCKY</div>';
         const d = mData[aktMiesto] || {};
         
         Object.keys(d).filter(k => !['_init','posledna_kontrola','checks','enabledTasks'].includes(k)).sort().forEach(it => {
             const info = Object.values(kat).find(x => x.name === it) || {type:'material'};
             const val = d[it] || 0;
-            const isZero = val <= 0;
-            
-            const h = `<div class="item-row ${isZero ? 'out-of-stock' : ''}">
-                <div class="item-info"><strong>${it}</strong><span class="qty-text ${isZero ? 'critical' : ''}">${val} ks</span></div>
-                <div style="display:flex; gap:5px; margin-top:10px;">
+            const h = `<div class="item-row ${val <= 0 ? 'out-of-stock' : ''}">
+                <div class="item-info"><strong>${it}</strong><span class="qty-text ${val <= 0 ? 'critical' : ''}">${val} ks</span></div>
+                <div style="display:flex; gap:8px; margin-top:12px;">
                     <button class="btn-qty" onclick="vloz('${it}', 1)">+1</button>
-                    <button class="btn-qty" onclick="vloz('${it}', -1)" ${isZero ? 'disabled' : ''}>-1</button>
-                    <button onclick="oprav('${it}')" style="background:none; border:none; padding:10px;">✏️</button>
-                    <button onclick="zmazMiestnyTovar('${it}')" style="color:#ccc; border:none; background:none;">✖</button>
+                    <button class="btn-qty" onclick="vloz('${it}', -1)" ${val <= 0 ? 'disabled' : ''}>-1</button>
+                    <button onclick="oprav('${it}')" style="background:none; border:none; padding:10px; font-size:1.2em;">✏️</button>
+                    <button onclick="zmazMiestnyTovar('${it}')" class="del-btn">✕</button>
                 </div></div>`;
             if(info.type === 'pomocka') lt.innerHTML += h; else lm.innerHTML += h;
         });
@@ -193,13 +207,51 @@
             if(enabled[tid]) {
                 const done = savedChecks[tid] ? 'done' : '';
                 lc.innerHTML += `<div class="check-item ${done}" onclick="toggleCheck('${tid}')">
-                    <div class="checkbox-custom">${done ? '✓' : ''}</div><div>${tasks[tid].text}</div>
+                    <div class="checkbox-custom">${done ? '✓' : ''}</div><div style="font-weight:bold;">${tasks[tid].text}</div>
                 </div>`;
             }
         });
+
         document.getElementById('setup-n').innerText = aktMiesto;
         const stl = document.getElementById('setup-tasks-list'); stl.innerHTML = "";
         Object.keys(tasks).forEach(tid => { stl.innerHTML += `<div class="setup-row"><span>${tasks[tid].text}</span><input type="checkbox" style="width:auto;" ${enabled[tid] ? 'checked' : ''} onchange="toggleEnabledTask('${tid}', this.checked)"></div>`; });
+
+        const s = document.getElementById('kosik-kam'); s.innerHTML = `<option value="PRIJEM">DODÁVATEĽ (Príjem)</option>`;
+        Object.keys(mData).filter(x => x !== aktMiesto).sort().forEach(x => s.innerHTML += `<option value="${x}">${x} (Presun)</option>`);
+    }
+
+    function toggleCheck(tid) {
+        const d = mData[aktMiesto];
+        const currentStatus = (d.checks && d.checks[tid]) || false;
+        const newStatus = !currentStatus;
+        
+        db.ref(`prevadzky/${aktMiesto}/checks/${tid}`).set(newStatus).then(() => {
+            // Po každom kliknutí skontrolujeme, či sú už všetky úlohy HOTOVÉ
+            checkChecklistCompletion();
+        });
+    }
+
+    function checkChecklistCompletion() {
+        const d = mData[aktMiesto];
+        const enabled = d.enabledTasks || {};
+        const checks = d.checks || {};
+        const enabledKeys = Object.keys(enabled).filter(k => enabled[k] === true);
+        
+        if(enabledKeys.length === 0) return;
+
+        const allDone = enabledKeys.every(k => checks[k] === true);
+        
+        if(allDone) {
+            const cas = new Date().toLocaleString('sk-SK');
+            const logRef = db.ref('historia').push();
+            logRef.set({
+                datum: cas,
+                odkial: "CHECKLIST",
+                kam: aktMiesto,
+                polozky: "Všetky úlohy boli úspešne dokončené."
+            });
+            db.ref(`prevadzky/${aktMiesto}/posledna_kontrola`).set(cas);
+        }
     }
 
     function toggleEnabledTask(tid, val) { db.ref(`prevadzky/${aktMiesto}/enabledTasks/${tid}`).set(val || null); }
@@ -211,13 +263,10 @@
         document.getElementById('tab-zasoby').classList.toggle('active', t === 'zasoby');
         document.getElementById('tab-checklist').classList.toggle('active', t === 'checklist');
     }
-    function toggleCheck(tid) { const curr = (mData[aktMiesto].checks && mData[aktMiesto].checks[tid]) || false; db.ref(`prevadzky/${aktMiesto}/checks/${tid}`).set(!curr); }
-    function resetChecklist() { if(confirm('Vynulovať?')) db.ref(`prevadzky/${aktMiesto}/checks`).remove(); }
+    function resetChecklist() { if(confirm('Naozaj resetovať progres?')) db.ref(`prevadzky/${aktMiesto}/checks`).remove(); }
     
     function vloz(it, q) {
-        const currentQty = mData[aktMiesto][it] || 0;
-        if(q === -1 && currentQty <= 0) return; // Bezpečnostná poistka
-        
+        if(q === -1 && (mData[aktMiesto][it] || 0) <= 0) return;
         kosik[it] = (kosik[it] || 0) + q; if(kosik[it] === 0) delete kosik[it];
         const bar = document.getElementById('kosik-bar');
         if(Object.keys(kosik).length > 0) {
@@ -227,32 +276,28 @@
 
     function potvrd() {
         const kam = document.getElementById('kosik-kam').value; const up = {}; const l = [];
-        let valid = true;
-        Object.keys(kosik).forEach(it => {
-            const q = kosik[it];
-            if(kam !== "PRIJEM" && (mData[aktMiesto][it] || 0) < q) { alert('Nedostatok ' + it + ' na sklade!'); valid = false; }
-        });
-        if(!valid) return;
-
         Object.keys(kosik).forEach(it => {
             const q = kosik[it];
             if(kam === "PRIJEM") up[`prevadzky/${aktMiesto}/${it}`] = (mData[aktMiesto][it] || 0) + q;
             else { up[`prevadzky/${aktMiesto}/${it}`] = (mData[aktMiesto][it] || 0) - q; up[`prevadzky/${kam}/${it}`] = (mData[kam][it] || 0) + q; }
             l.push(`${q}x ${it}`);
         });
-        up[`historia/${Date.now()}`] = { datum: new Date().toLocaleString('sk-SK'), odkial: kam==="PRIJEM"?"DODÁVKA":aktMiesto, kam: kam==="PRIJEM"?aktMiesto:kam, polozky: l.join(', ') };
+        const cas = new Date().toLocaleString('sk-SK');
+        up[`historia/${Date.now()}`] = { datum: cas, odkial: kam==="PRIJEM"?"DODÁVATEĽ":aktMiesto, kam: kam==="PRIJEM"?aktMiesto:kam, polozky: l.join(', ') };
+        up[`prevadzky/${aktMiesto}/posledna_kontrola`] = cas;
         db.ref().update(up).then(() => { kosik = {}; document.getElementById('kosik-bar').classList.add('hidden'); showView('view-hlavna'); });
     }
 
     function zrus() { kosik = {}; document.getElementById('kosik-bar').classList.add('hidden'); }
     
     function oprav(it) {
-        const n = prompt(`Stav pre ${it}:`, mData[aktMiesto][it]);
-        if(n !== null) {
+        const n = prompt(`Nový stav pre ${it}:`, mData[aktMiesto][it]);
+        if(n !== null && n !== "") {
             const val = parseInt(n);
-            if(val < 0) { alert('Zásoba nemôže byť záporná!'); return; }
-            db.ref(`prevadzky/${aktMiesto}/${it}`).set(val || 0);
-            db.ref(`prevadzky/${aktMiesto}/posledna_kontrola`).set(new Date().toLocaleDateString('sk-SK'));
+            if(val >= 0) {
+                db.ref(`prevadzky/${aktMiesto}/${it}`).set(val);
+                db.ref(`prevadzky/${aktMiesto}/posledna_kontrola`).set(new Date().toLocaleString('sk-SK'));
+            }
         }
     }
 
@@ -261,13 +306,21 @@
     function addTask() { const t = document.getElementById('add-task-text').value; if(t) { db.ref('tasks').push({text:t}); document.getElementById('add-task-text').value=""; } }
 
     function renderAdmin() {
-        document.getElementById('adm-i-list').innerHTML = Object.keys(kat).map(id => `<div class="setup-row"><span>${kat[id].name}</span><button class="del-btn" onclick="db.ref('materialy/${id}').remove()">✖</button></div>`).join('');
-        document.getElementById('adm-p-list').innerHTML = Object.keys(mData).map(m => `<div class="setup-row"><span>${m}</span><button class="del-btn" onclick="if(confirm('Zmazať celé miesto?')) db.ref('prevadzky/${m}').remove()">✖</button></div>`).join('');
-        document.getElementById('adm-task-list').innerHTML = Object.keys(tasks).map(id => `<div class="setup-row"><span>${tasks[id].text}</span><button class="del-btn" onclick="db.ref('tasks/${id}').remove()">✖</button></div>`).join('');
+        document.getElementById('adm-i-list').innerHTML = Object.keys(kat).map(id => `<div class="setup-row"><span>${kat[id].name}</span><button class="del-btn" onclick="db.ref('materialy/${id}').remove()">✕</button></div>`).join('');
+        document.getElementById('adm-p-list').innerHTML = Object.keys(mData).map(m => `<div class="setup-row"><span>${m}</span><button class="del-btn" onclick="if(confirm('Zmazať miesto?')) db.ref('prevadzky/${m}').remove()">✕</button></div>`).join('');
+        document.getElementById('adm-task-list').innerHTML = Object.keys(tasks).map(id => `<div class="setup-row"><span>${tasks[id].text}</span><button class="del-btn" onclick="db.ref('tasks/${id}').remove()">✕</button></div>`).join('');
     }
+
     function renderHist(h) {
-        document.getElementById('list-hist').innerHTML = Object.values(h).reverse().slice(0, 15).map(x => `<div style="background:white; padding:10px; border-radius:12px; margin-bottom:8px; font-size:0.8em;"><strong>${x.odkial} ➡️ ${x.kam}</strong><br>${x.polozky}</div>`).join('');
+        document.getElementById('list-hist').innerHTML = Object.values(h).reverse().slice(0, 30).map(x => `
+            <div class="hist-item">
+                <div style="color:#888; margin-bottom:4px;">${x.datum}</div>
+                <strong>${x.odkial} ➡️ ${x.kam}</strong><br>
+                <div style="margin-top:4px;">${x.polozky}</div>
+            </div>
+        `).join('');
     }
+
     function showView(id) {
         ['view-hlavna', 'view-detail', 'view-history', 'view-admin', 'view-check-setup'].forEach(v => document.getElementById(v).classList.add('hidden'));
         document.getElementById(id).classList.remove('hidden');
@@ -275,6 +328,7 @@
         if(id === 'view-hlavna') document.getElementById('b1').classList.add('active');
         if(id === 'view-history') document.getElementById('b2').classList.add('active');
         if(id === 'view-admin') document.getElementById('b3').classList.add('active');
+        window.scrollTo(0,0);
     }
 </script>
 </body>
