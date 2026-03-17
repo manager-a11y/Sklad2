@@ -3,58 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DEEPLY Manažér</title>
+    <title>DEEPLY Manažér v2.0</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <style>
-        :root { --deeply-yellow: #FFD700; --deeply-dark: #1a1a1a; --mat-color: #3498db; --tool-color: #9b59b6; --check-color: #27ae60; --bg: #f4f4f4; --danger: #e74c3c; }
-        body { font-family: sans-serif; margin: 0; background: var(--bg); -webkit-tap-highlight-color: transparent; }
+        :root { --deeply-yellow: #FFD700; --deeply-dark: #1a1a1a; --check-color: #27ae60; --bg: #f4f4f4; --danger: #e74c3c; --warning: #f39c12; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; background: var(--bg); -webkit-tap-highlight-color: transparent; color: var(--deeply-dark); }
         
-        /* LOGIN VIEW */
+        /* LOGIN */
         #view-login { height: 100vh; width: 100vw; display: flex; justify-content: center; align-items: center; background: var(--deeply-yellow); position: fixed; top:0; left:0; z-index: 3000; }
         .login-card { background: white; padding: 40px 30px; border-radius: 35px; width: 280px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
-        .login-card h1 { margin: 0 0 25px 0; font-size: 32px; font-weight: 900; letter-spacing: -2px; }
-
+        
+        /* HEADER */
         header { position: sticky; top: 0; background: var(--deeply-yellow); padding: 15px; display: flex; justify-content: space-between; align-items: center; z-index: 1000; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .logo { font-weight: 900; font-size: 1.2em; letter-spacing: -1px; }
-        .nav-btn { background: rgba(0,0,0,0.05); border: none; padding: 10px; border-radius: 10px; font-weight: bold; cursor: pointer; }
+        .logo { font-weight: 900; font-size: 1.3em; letter-spacing: -1px; }
+        .nav-btn { background: rgba(0,0,0,0.05); border: none; padding: 10px; border-radius: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         .nav-btn.active { background: var(--deeply-dark); color: white; }
         
-        #main-content { padding: 15px; padding-bottom: 160px; }
-        .section-title { font-size: 0.8em; font-weight: bold; color: #666; margin: 20px 0 10px 5px; text-transform: uppercase; }
+        /* DASHBOARD */
+        #main-content { padding: 15px; padding-bottom: 100px; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .karta { background: white; padding: 20px; border-radius: 22px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.05); cursor: pointer; }
+        .karta { padding: 20px; border-radius: 25px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05); cursor: pointer; position: relative; border: 3px solid transparent; transition: transform 0.1s; background: white; }
+        .karta:active { transform: scale(0.96); }
         
-        .tab-wrapper { display: flex; background: #eee; border-radius: 12px; padding: 4px; margin-bottom: 20px; }
-        .tab-btn { flex: 1; padding: 10px 5px; border: none; border-radius: 10px; font-weight: bold; background: none; color: #666; font-size: 0.75em; cursor: pointer; }
-        .tab-btn.active { background: white; color: var(--deeply-dark); box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        
-        .item-row { background: white; margin-bottom: 10px; padding: 15px; border-radius: 18px; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
-        .item-info { display: flex; justify-content: space-between; align-items: center; }
-        .qty-text { font-weight: 900; font-size: 1.1em; }
-        .critical { color: var(--danger); }
+        /* SEMAFOR STATUSY */
+        .status-ok { border-color: var(--check-color); }
+        .status-warning { border-color: var(--warning); }
+        .status-danger { border-color: var(--danger); }
+        .status-sklad { border-color: #ddd; background: #f9f9f9; }
 
-        .check-item { display: flex; align-items: center; background: white; padding: 18px; border-radius: 15px; margin-bottom: 8px; gap: 12px; border-left: 5px solid #ddd; cursor: pointer; }
-        .check-item.done { border-left-color: var(--check-color); background: #f0fff4; }
-        .checkbox-custom { width: 24px; height: 24px; border: 2px solid #ddd; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; }
-        .done .checkbox-custom { background: var(--check-color); border-color: var(--check-color); color: white; }
+        .pradlo-badge { position: absolute; top: 10px; right: 10px; font-size: 1.2em; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.1)); }
         
-        .admin-card { background: white; padding: 20px; border-radius: 20px; margin-bottom: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        input, select { width: 100%; padding: 14px; margin-bottom: 10px; border-radius: 12px; border: 1px solid #ddd; font-size: 16px; box-sizing: border-box; }
-        .btn-main { width: 100%; padding: 16px; background: var(--deeply-dark); color: white; border: none; border-radius: 15px; font-weight: bold; cursor: pointer; }
-        .btn-qty { flex: 1; padding: 15px; border: none; background: #f5f5f5; border-radius: 12px; font-weight: bold; cursor: pointer; }
+        /* UI PRVKY */
+        .tab-wrapper { display: flex; background: #e0e0e0; border-radius: 15px; padding: 4px; margin-bottom: 20px; }
+        .tab-btn { flex: 1; padding: 12px; border: none; border-radius: 12px; font-weight: bold; background: none; color: #666; cursor: pointer; font-size: 0.8em; }
+        .tab-btn.active { background: white; color: var(--deeply-dark); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
         
-        .setup-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee; }
-        .kosik-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--deeply-dark); color: white; padding: 20px; z-index: 2000; border-top-left-radius: 25px; border-top-right-radius: 25px; box-shadow: 0 -5px 20px rgba(0,0,0,0.2); }
+        .item-row { background: white; margin-bottom: 10px; padding: 18px; border-radius: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .btn-main { width: 100%; padding: 18px; background: var(--deeply-dark); color: white; border: none; border-radius: 18px; font-weight: bold; cursor: pointer; font-size: 1em; }
+        .btn-secondary { background: #eee; color: var(--deeply-dark); border: none; padding: 12px; border-radius: 12px; font-weight: bold; cursor: pointer; }
+        
+        input, select { width: 100%; padding: 15px; margin-bottom: 12px; border-radius: 15px; border: 1px solid #ddd; font-size: 16px; box-sizing: border-box; }
+        .admin-section { background: white; padding: 20px; border-radius: 25px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
         .hidden { display: none !important; }
-        .del-btn { color: #ccc; border: none; background: none; font-size: 1.2em; cursor: pointer; }
+
+        /* KOSIK PRE PRESUNY */
+        .cart-bar { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--deeply-dark); color: white; padding: 15px 25px; border-radius: 30px; display: flex; gap: 15px; align-items: center; z-index: 2000; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
     </style>
 </head>
 <body>
 
 <div id="view-login">
     <div class="login-card">
-        <h1>DEEPLY</h1>
+        <h1 style="letter-spacing:-2px; margin:0 0 30px 0;">DEEPLY</h1>
         <input type="text" id="l-u" placeholder="Meno">
         <input type="password" id="l-p" placeholder="Heslo">
         <button class="btn-main" onclick="tryLogin()">VSTÚPIŤ</button>
@@ -63,10 +64,9 @@
 
 <div id="view-app" class="hidden">
     <header>
-        <div class="logo" onclick="showView('view-hlavna')">DEEPLY</div>
-        <div style="display:flex; gap:8px;">
+        <div class="logo">DEEPLY</div>
+        <div style="display:flex; gap:10px;">
             <button id="b1" class="nav-btn active" onclick="showView('view-hlavna')">🏠</button>
-            <button id="b2" class="nav-btn" onclick="showView('view-history')">📜</button>
             <button id="b3" class="nav-btn hidden" onclick="showView('view-admin')">⚙️</button>
             <button class="nav-btn" onclick="location.reload()">🚪</button>
         </div>
@@ -74,91 +74,80 @@
 
     <div id="main-content">
         <div id="view-hlavna">
-            <div class="section-title">📦 Sklady</div>
-            <div id="grid-sklady" class="grid"></div>
-            <div class="section-title">🏢 Prevádzky</div>
-            <div id="grid-prevadzky" class="grid"></div>
+            <div id="dashboard-grid" class="grid"></div>
         </div>
 
         <div id="view-detail" class="hidden">
-            <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <button onclick="showView('view-hlavna')" style="border:none; background:none; font-weight:900; font-size: 1.5em;">✕</button>
-                <h2 id="det-n" style="margin:0; font-size: 1.1em; letter-spacing:-0.5px;">-</h2>
+                <h2 id="det-n" style="margin:0; font-size: 1.2em; text-align:center;">-</h2>
                 <div style="width:30px;"></div>
             </div>
-            
+
             <div class="tab-wrapper">
-                <button id="tab-zasoby" class="tab-btn active" onclick="switchTab('zasoby')">ZÁSOBY</button>
-                <button id="tab-checklist" class="tab-btn" onclick="switchTab('checklist')">CHECKLIST</button>
-                <button id="tab-logy" class="tab-btn" onclick="switchTab('logy')">KONTROLY</button>
+                <button id="tab-zasoby" class="tab-btn active" onclick="switchTab('zasoby')">📦 ZÁSOBY</button>
+                <button id="tab-checklist" class="tab-btn" onclick="switchTab('checklist')">✅ KONTROLA</button>
+                <button id="tab-logy" class="tab-btn" onclick="switchTab('logy')">📜 HISTÓRIA</button>
             </div>
-            
+
             <div id="content-zasoby">
-                <div style="background:#fff; padding:15px; border-radius:20px; margin-bottom:15px; border:1px solid #eee;">
-                    <select id="sel-pridat-tovar" style="margin-bottom:10px;"></select>
-                    <button class="btn-main" style="background:var(--deeply-yellow); color:black;" onclick="pridajZKatalogu()">+ PRIDAŤ TOVAR</button>
+                <div id="list-items"></div>
+                <div id="add-item-to-p" class="hidden" style="margin-top:20px; background:#fff; padding:15px; border-radius:20px;">
+                    <select id="sel-katalog"></select>
+                    <button class="btn-main" onclick="addItemToP()">+ PRIDAŤ DO ZOZNAMU</button>
                 </div>
-                <div id="list-mat"></div>
-                <div id="list-tool" style="margin-top:20px;"></div>
             </div>
 
             <div id="content-checklist" class="hidden">
-                <div id="list-check"></div>
-                <button onclick="showView('view-check-setup')" style="width:100%; margin-top:20px; padding:15px; background:#fff; border:1px solid #ddd; border-radius:15px; font-weight:bold; color:#666;">⚙️ Nastaviť úlohy miesta</button>
-                <button onclick="resetChecklist()" style="width:100%; margin-top:15px; background:none; border:none; color:var(--danger); font-size:0.8em; opacity:0.5;">VYNULOVAŤ DNEŠNÝ PROGRESS</button>
+                <div id="list-checks"></div>
+                <div id="pradlo-ui" class="hidden" style="margin-top:20px; padding:20px; background:white; border-radius:20px; text-align:center;">
+                    <p style="font-weight:bold; margin-top:0;">🧺 Zobrané špinavé prádlo?</p>
+                    <div style="display:flex; gap:10px;">
+                        <button id="p-ano" class="btn-main" style="background:#eee; color:black;" onclick="setPradloTmp(true)">ÁNO</button>
+                        <button id="p-nie" class="btn-main" style="background:#eee; color:black;" onclick="setPradloTmp(false)">NIE</button>
+                    </div>
+                </div>
+                <button class="btn-main" style="margin-top:25px; background:var(--check-color);" onclick="submitCheck()">ODOSLAŤ KONTROLU</button>
             </div>
 
             <div id="content-logy" class="hidden">
-                <div id="miestne-logy"></div>
+                <div id="list-history-local"></div>
             </div>
-        </div>
-
-        <div id="view-check-setup" class="hidden">
-            <button onclick="showView('view-detail')" style="border:none; background:none; font-weight:bold; margin-bottom:20px;">← SPÄŤ</button>
-            <h3>Výber úloh: <span id="setup-n"></span></h3>
-            <div id="setup-tasks-list" class="admin-card"></div>
-        </div>
-
-        <div id="view-history" class="hidden">
-            <div class="section-title">História pohybov a kontrol</div>
-            <div id="list-hist"></div>
         </div>
 
         <div id="view-admin" class="hidden">
-            <div class="admin-card">
-                <h4>👤 Správa užívateľov</h4>
-                <input type="text" id="adm-u-name" placeholder="Meno">
-                <input type="text" id="adm-u-pass" placeholder="Heslo">
-                <select id="adm-u-role"><option value="supervisor">Supervisor</option><option value="manager">Manager</option></select>
-                <button class="btn-main" onclick="dbAddUser()">ULOŽIŤ UŽÍVATEĽA</button>
+            <div class="admin-section">
+                <h3>👥 Užívatelia</h3>
+                <input type="text" id="adm-u-n" placeholder="Meno">
+                <input type="text" id="adm-u-p" placeholder="Heslo">
+                <select id="adm-u-r"><option value="supervisor">Supervisor</option><option value="manager">Manager</option></select>
+                <button class="btn-main" onclick="adminAddUser()">PRIDAŤ UŽÍVATEĽA</button>
             </div>
-            <div class="admin-card">
-                <h4>📦 Katalóg tovarov</h4>
-                <input type="text" id="add-i-name" placeholder="Názov tovaru">
-                <select id="add-i-type"><option value="material">Materiál</option><option value="pomocka">Pomôcka</option></select>
-                <button class="btn-main" style="background:var(--deeply-yellow); color:black;" onclick="addKatalog()">PRIDAŤ DO KATALÓGU</button>
-                <div id="adm-i-list" style="max-height:150px; overflow-y:auto; margin-top:15px;"></div>
-            </div>
-            <div class="admin-card">
-                <h4>🏢 Miesta a 📝 Úlohy</h4>
-                <input type="text" id="add-p-name" placeholder="Názov miesta (napr. Sklad BA)">
-                <button class="btn-main" style="background:#ddd; color:black;" onclick="addMiesto()">PRIDAŤ MIESTO</button>
-                <div id="adm-p-list" style="margin: 15px 0;"></div>
-                <input type="text" id="add-task-text" placeholder="Nová globálna úloha">
-                <button class="btn-main" style="background:var(--check-color);" onclick="addTask()">VYTVORIŤ ÚLOHU</button>
-                <div id="adm-task-list" style="margin-top:15px;"></div>
-            </div>
-        </div>
-    </div>
 
-    <div id="kosik-bar" class="kosik-bar hidden">
-        <div id="kosik-text" style="font-size:0.9em; margin-bottom:12px; font-weight:bold; color:var(--deeply-yellow);"></div>
-        <div style="display:flex; gap:10px;">
-            <select id="kosik-kam" style="margin:0; flex:2;"></select>
-            <button onclick="potvrd()" style="background:var(--deeply-yellow); border:none; flex:1; border-radius:12px; font-weight:bold;">OK</button>
-            <button onclick="zrus()" style="background:none; border:1px solid white; color:white; border-radius:12px; padding:0 15px;">✕</button>
+            <div class="admin-section">
+                <h3>🏢 Správa prevádzok</h3>
+                <input type="text" id="adm-p-n" placeholder="Názov prevádzky">
+                <select id="adm-p-t"><option value="prevadzka">Prevádzka</option><option value="sklad">Sklad</option></select>
+                <button class="btn-main" onclick="adminAddP()">VYTVORIŤ</button>
+                <div id="admin-p-list" style="margin-top:15px;"></div>
+            </div>
+
+            <div class="admin-section">
+                <h3>📦 Katalóg tovaru</h3>
+                <input type="text" id="adm-i-n" placeholder="Názov tovaru">
+                <button class="btn-main" onclick="adminAddItem()">PRIDAŤ DO KATALÓGU</button>
+                <div id="admin-i-list" style="margin-top:15px;"></div>
+            </div>
+
+            <button class="btn-main" style="background:var(--danger);" onclick="setupInitialData()">⚠️ RESET A NAHRATIE PREVÁDZOK</button>
         </div>
     </div>
+</div>
+
+<div id="cart-bar" class="cart-bar hidden">
+    <span id="cart-info">0 položiek</span>
+    <button class="btn-secondary" style="background:var(--deeply-yellow);" onclick="doTransfer()">PRESUNÚŤ</button>
+    <button class="btn-secondary" onclick="clearCart()">✕</button>
 </div>
 
 <script>
@@ -173,10 +162,9 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    let user = null;
-    let mData = {}; let kat = {}; let aktMiesto = ""; let kosik = {}; let tasks = {}; let globHist = {};
+    let user = null; let mData = {}; let aktMiesto = ""; let cart = {}; let tmpPradlo = null;
 
-    // LOGIN LOGIKA
+    // --- LOGIN LOGIKA ---
     function tryLogin() {
         const u = document.getElementById('l-u').value.trim().toLowerCase();
         const p = document.getElementById('l-p').value.trim();
@@ -188,164 +176,254 @@
                 document.getElementById('view-app').classList.remove('hidden');
                 if(d.role === 'manager') document.getElementById('b3').classList.remove('hidden');
                 startApp();
-            } else alert("Nesprávne údaje.");
+            } else alert("Nesprávne meno alebo heslo.");
         });
     }
 
     function startApp() {
         db.ref('/').on('value', snap => {
-            const d = snap.val() || {};
-            mData = d.prevadzky || {}; kat = d.materialy || {}; tasks = d.tasks || {}; globHist = d.historia || {};
-            renderDash(); renderAdmin(); renderHist(globHist); if(aktMiesto) refreshDetail();
+            mData = snap.val() || {};
+            renderDashboard();
+            if(aktMiesto) refreshDetail();
+            renderAdminLists();
         });
     }
 
-    function renderDash() {
-        const gs = document.getElementById('grid-sklady'); const gp = document.getElementById('grid-prevadzky');
-        gs.innerHTML = ""; gp.innerHTML = "";
-        Object.keys(mData).sort().forEach(m => {
-            const isSklad = m.toLowerCase().includes('sklad');
-            const h = `<div class="karta" onclick="otvorMiesto('${m}')">
-                <div style="font-size:2em; margin-bottom:8px;">${isSklad ? '📦' : '🏢'}</div>
-                <div style="font-weight:900; font-size:0.9em; text-transform:uppercase;">${m}</div>
-                <div style="font-size:0.65em; color:#888; margin-top:8px;">${mData[m].posledna_kontrola || "Bez kontroly"}</div>
-            </div>`;
-            if(isSklad) gs.innerHTML += h; else gp.innerHTML += h;
+    // --- DASHBOARD A SEMAFOR ---
+    function isWorkDay(date) {
+        const day = date.getDay();
+        return day !== 0 && day !== 6;
+    }
+
+    function getStatus(mName) {
+        const p = mData.prevadzky[mName];
+        if(p._type === 'sklad') return 'status-sklad';
+        if(!p.last_check) return 'status-danger';
+
+        const last = new Date(p.last_check);
+        const today = new Date();
+        let diffWorkDays = 0;
+        let tempDate = new Date(last.getTime());
+
+        while(tempDate < today) {
+            tempDate.setDate(tempDate.getDate() + 1);
+            if(tempDate <= today && isWorkDay(tempDate)) diffWorkDays++;
+        }
+
+        const limit = p.rozostup || 2;
+        if(diffWorkDays > limit) return 'status-danger';
+        if(diffWorkDays === limit) return 'status-warning';
+        return 'status-ok';
+    }
+
+    function renderDashboard() {
+        const grid = document.getElementById('dashboard-grid');
+        grid.innerHTML = "";
+        const pp = mData.prevadzky || {};
+        Object.keys(pp).sort().forEach(m => {
+            const status = getStatus(m);
+            const pradloAlert = (pp[m].pradlo && pp[m].p_count >= (pp[m].p_limit || 3));
+            grid.innerHTML += `
+                <div class="karta ${status}" onclick="otvorMiesto('${m}')">
+                    ${pradloAlert ? '<div class="pradlo-badge">🧺</div>' : ''}
+                    <div style="font-size:2em; margin-bottom:10px;">${pp[m]._type === 'sklad' ? '📦' : '🏢'}</div>
+                    <div style="font-weight:900; font-size:0.85em; text-transform:uppercase;">${m}</div>
+                    <div style="font-size:0.65em; color:#888; margin-top:8px;">${pp[m].last_check ? new Date(pp[m].last_check).toLocaleDateString('sk-SK') : 'Žiadna kontrola'}</div>
+                </div>`;
         });
     }
 
-    function otvorMiesto(m) { aktMiesto = m; showView('view-detail'); document.getElementById('det-n').innerText = m; switchTab('zasoby'); refreshDetail(); }
+    // --- DETAIL PREVÁDZKY ---
+    function otvorMiesto(m) {
+        aktMiesto = m; tmpPradlo = null;
+        showView('view-detail');
+        document.getElementById('det-n').innerText = m;
+        switchTab('zasoby');
+        refreshDetail();
+    }
 
     function refreshDetail() {
-        const lm = document.getElementById('list-mat'); const lt = document.getElementById('list-tool');
-        lm.innerHTML = '<div class="section-title">💧 MATERIÁL</div>'; lt.innerHTML = '<div class="section-title">🛠️ POMÔCKY</div>';
-        const d = mData[aktMiesto] || {};
+        const p = mData.prevadzky[aktMiesto];
+        const list = document.getElementById('list-items');
+        list.innerHTML = "";
         
-        Object.keys(d).filter(k => !['_init','posledna_kontrola','checks','enabledTasks'].includes(k)).sort().forEach(it => {
-            const info = Object.values(kat).find(x => x.name === it) || {type:'material'};
-            const val = d[it] || 0;
-            const h = `<div class="item-row">
-                <div class="item-info"><strong>${it}</strong><span class="qty-text ${val <= 0 ? 'critical' : ''}">${val} ks</span></div>
-                <div style="display:flex; gap:8px; margin-top:12px;">
-                    <button class="btn-qty" onclick="vloz('${it}', 1)">+1</button>
-                    <button class="btn-qty" onclick="vloz('${it}', -1)" ${val <= 0 ? 'disabled' : ''}>-1</button>
-                    <button onclick="oprav('${it}')" style="background:none; border:none; padding:10px; font-size:1.2em;">✏️</button>
-                    ${user.role === 'manager' ? `<button onclick="zmazMiestnyTovar('${it}')" class="del-btn">✕</button>` : ''}
-                </div></div>`;
-            if(info.type === 'pomocka') lt.innerHTML += h; else lm.innerHTML += h;
-        });
-
-        const sel = document.getElementById('sel-pridat-tovar'); sel.innerHTML = "";
-        Object.values(kat).sort((a,b)=>a.name.localeCompare(b.name)).forEach(k => sel.innerHTML += `<option value="${k.name}">${k.name}</option>`);
-
-        // Checklist
-        const lc = document.getElementById('list-check'); lc.innerHTML = "";
-        const enabled = d.enabledTasks || {}; const savedChecks = d.checks || {};
-        Object.keys(tasks).forEach(tid => {
-            if(enabled[tid]) {
-                const done = savedChecks[tid] ? 'done' : '';
-                lc.innerHTML += `<div class="check-item ${done}" onclick="toggleCheck('${tid}')">
-                    <div class="checkbox-custom">${done ? '✓' : ''}</div><div style="font-weight:bold;">${tasks[tid].text}</div>
+        // Zásoby
+        Object.keys(p).forEach(k => {
+            if(!k.startsWith('_') && !['last_check','rozostup','pradlo','p_limit','p_count','_type'].includes(k)) {
+                list.innerHTML += `<div class="item-row">
+                    <strong>${k}</strong>
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <button class="nav-btn" onclick="addToCart('${k}')">🛒</button>
+                        <b style="font-size:1.2em;">${p[k]}</b>
+                        <button class="nav-btn" onclick="quickEdit('${k}')">✏️</button>
+                    </div>
                 </div>`;
             }
         });
 
-        // Logy kontroly
-        const ml = document.getElementById('miestne-logy'); ml.innerHTML = "";
-        Object.values(globHist).filter(h => h.odkial === "CHECKLIST" && h.kam === aktMiesto).reverse().forEach(l => {
-            ml.innerHTML += `<div class="check-item done" style="margin-bottom:8px; border-left-color:var(--check-color);"><div style="font-size:0.85em;"><strong>${l.datum}</strong><br>Kontrola úspešne vykonaná</div></div>`;
+        // Prádlo UI
+        document.getElementById('pradlo-ui').classList.toggle('hidden', !p.pradlo);
+        
+        // História
+        const hList = document.getElementById('list-history-local');
+        hList.innerHTML = "";
+        const hist = mData.historia || {};
+        Object.values(hist).reverse().filter(h => h.miesto === aktMiesto).slice(0,10).forEach(h => {
+            hList.innerHTML += `<div style="font-size:0.8em; padding:10px; border-bottom:1px solid #ddd;"><b>${h.datum}</b><br>${h.akcia}</div>`;
         });
 
-        const stl = document.getElementById('setup-tasks-list'); stl.innerHTML = "";
-        Object.keys(tasks).forEach(tid => { stl.innerHTML += `<div class="setup-row"><span>${tasks[tid].text}</span><input type="checkbox" style="width:auto;" ${enabled[tid] ? 'checked' : ''} onchange="toggleEnabledTask('${tid}', this.checked)"></div>`; });
-
-        const s = document.getElementById('kosik-kam'); s.innerHTML = `<option value="PRIJEM">DODÁVATEĽ (Naskladniť)</option>`;
-        Object.keys(mData).filter(x => x !== aktMiesto).sort().forEach(x => s.innerHTML += `<option value="${x}">${x}</option>`);
+        // Katalóg pre pridanie
+        const sel = document.getElementById('sel-katalog');
+        sel.innerHTML = "";
+        const kat = mData.katalog || {};
+        Object.values(kat).forEach(v => sel.innerHTML += `<option value="${v}">${v}</option>`);
+        document.getElementById('add-item-to-p').classList.toggle('hidden', user.role !== 'manager');
     }
 
-    function toggleCheck(tid) {
-        const d = mData[aktMiesto];
-        const newStatus = !((d.checks && d.checks[tid]) || false);
-        db.ref(`prevadzky/${aktMiesto}/checks/${tid}`).set(newStatus).then(() => { if(newStatus) checkCompletion(); });
+    function setPradloTmp(val) {
+        tmpPradlo = val;
+        document.getElementById('p-ano').style.background = val ? 'var(--check-color)' : '#eee';
+        document.getElementById('p-nie').style.background = !val ? 'var(--danger)' : '#eee';
     }
 
-    function checkCompletion() {
-        const d = mData[aktMiesto];
-        const enabledKeys = Object.keys(d.enabledTasks || {}).filter(k => d.enabledTasks[k] === true);
-        db.ref(`prevadzky/${aktMiesto}/checks`).once('value', snap => {
-            const currentChecks = snap.val() || {};
-            if(enabledKeys.length > 0 && enabledKeys.every(k => currentChecks[k] === true)) {
-                const cas = new Date().toLocaleString('sk-SK');
-                db.ref('historia').push({ datum: cas, odkial: "CHECKLIST", kam: aktMiesto, polozky: "Kompletná kontrola" });
-                db.ref(`prevadzky/${aktMiesto}/posledna_kontrola`).set(cas);
-                alert('Hotovo! Checklist kompletne vyplnený.');
-            }
+    function submitCheck() {
+        const p = mData.prevadzky[aktMiesto];
+        if(p.pradlo && tmpPradlo === null) return alert("Vyjadrite sa k prádlu!");
+        
+        const now = new Date().toISOString();
+        const up = {};
+        up[`prevadzky/${aktMiesto}/last_check`] = now;
+        
+        if(p.pradlo) {
+            const currentC = p.p_count || 0;
+            up[`prevadzky/${aktMiesto}/p_count`] = tmpPradlo ? 0 : currentC + 1;
+        }
+
+        const logId = Date.now();
+        up[`historia/${logId}`] = {
+            miesto: aktMiesto,
+            datum: new Date().toLocaleString('sk-SK'),
+            akcia: `Kontrola vykonaná (${user.name}). Prádlo: ${tmpPradlo ? 'Zobrané' : 'Ponechané'}`
+        };
+
+        db.ref().update(up).then(() => {
+            alert("Kontrola úspešná!");
+            showView('view-hlavna');
         });
     }
 
-    function potvrd() {
-        const kam = document.getElementById('kosik-kam').value; const up = {}; const itemsLog = [];
-        Object.keys(kosik).forEach(it => {
-            const q = kosik[it];
-            if(kam === "PRIJEM") up[`prevadzky/${aktMiesto}/${it}`] = (mData[aktMiesto][it] || 0) + q;
-            else { up[`prevadzky/${aktMiesto}/${it}`] = (mData[aktMiesto][it] || 0) - q; up[`prevadzky/${kam}/${it}`] = (mData[kam][it] || 0) + q; }
-            itemsLog.push(`${q}x ${it}`);
+    // --- SKLAD A POHYBY ---
+    function addToCart(it) {
+        cart[it] = (cart[it] || 0) + 1;
+        updateCartUI();
+    }
+
+    function updateCartUI() {
+        const count = Object.keys(cart).length;
+        document.getElementById('cart-bar').classList.toggle('hidden', count === 0);
+        document.getElementById('cart-info').innerText = count + " vybrané";
+    }
+
+    function clearCart() { cart = {}; updateCartUI(); }
+
+    function doTransfer() {
+        const kam = prompt("Cieľ presunu (Presný názov skladu/prevádzky):");
+        if(!kam || !mData.prevadzky[kam]) return alert("Neexistujúci cieľ.");
+        
+        const up = {};
+        const itemsMsg = [];
+        Object.keys(cart).forEach(it => {
+            const qty = cart[it];
+            up[`prevadzky/${aktMiesto}/${it}`] = (mData.prevadzky[aktMiesto][it] || 0) - qty;
+            up[`prevadzky/${kam}/${it}`] = (mData.prevadzky[kam][it] || 0) + qty;
+            itemsMsg.push(`${qty}x ${it}`);
         });
-        const cas = new Date().toLocaleString('sk-SK');
-        db.ref('historia').push({ datum: cas, odkial: kam==="PRIJEM"?"DODÁVATEĽ":aktMiesto, kam: kam==="PRIJEM"?aktMiesto:kam, polozky: itemsLog.join(', ') });
-        db.ref().update(up).then(() => { kosik = {}; document.getElementById('kosik-bar').classList.add('hidden'); showView('view-hlavna'); });
+
+        const logId = Date.now();
+        up[`historia/${logId}`] = {
+            miesto: aktMiesto,
+            datum: new Date().toLocaleString('sk-SK'),
+            akcia: `Presun do ${kam}: ${itemsMsg.join(', ')}`
+        };
+
+        db.ref().update(up).then(() => { clearCart(); alert("Presun ok."); });
     }
 
-    function vloz(it, q) {
-        if(q === -1 && (mData[aktMiesto][it] || 0) <= 0) return;
-        kosik[it] = (kosik[it] || 0) + q; if(kosik[it] === 0) delete kosik[it];
-        const bar = document.getElementById('kosik-bar');
-        if(Object.keys(kosik).length > 0) {
-            bar.classList.remove('hidden'); document.getElementById('kosik-text').innerText = Object.keys(kosik).map(x => `${kosik[x]}x ${x}`).join(', ');
-        } else bar.classList.add('hidden');
+    function quickEdit(it) {
+        if(user.role !== 'manager') return;
+        const val = prompt("Zadaj presný stav zásob pre "+it, mData.prevadzky[aktMiesto][it]);
+        if(val !== null) db.ref(`prevadzky/${aktMiesto}/${it}`).set(parseInt(val) || 0);
     }
 
-    function renderHist(h) {
-        document.getElementById('list-hist').innerHTML = Object.values(h).reverse().slice(0, 30).map(x => `
-            <div style="background:white; padding:15px; border-radius:18px; margin-bottom:10px; font-size:0.85em; border-left:5px solid ${x.odkial==='CHECKLIST'?'#27ae60':'#FFD700'}">
-                <div style="color:#888; margin-bottom:4px;">${x.datum}</div>
-                <strong>${x.odkial} ➡️ ${x.kam}</strong><br><span style="color:#555;">${x.polozky}</span>
-            </div>
-        `).join('');
+    // --- ADMIN FUNKCIE ---
+    function adminAddUser() {
+        const n = document.getElementById('adm-u-n').value.trim().toLowerCase();
+        const p = document.getElementById('adm-u-p').value.trim();
+        const r = document.getElementById('adm-u-r').value;
+        if(n && p) db.ref('users/'+n).set({pass:p, role:r});
     }
 
-    // OSTATNÉ POMOCNÉ FUNKCIE
-    function toggleEnabledTask(tid, val) { db.ref(`prevadzky/${aktMiesto}/enabledTasks/${tid}`).set(val || null); }
-    function zmazMiestnyTovar(it) { if(confirm('Zmazať z tohto miesta?')) db.ref(`prevadzky/${aktMiesto}/${it}`).remove(); }
-    function pridajZKatalogu() { const v = document.getElementById('sel-pridat-tovar').value; if(v) db.ref(`prevadzky/${aktMiesto}/${v}`).set(0); }
-    function switchTab(t) { ['zasoby', 'checklist', 'logy'].forEach(x => { document.getElementById('content-'+x).classList.toggle('hidden', t !== x); document.getElementById('tab-'+x).classList.toggle('active', t === x); }); }
-    function resetChecklist() { if(confirm('Resetovať progress?')) db.ref(`prevadzky/${aktMiesto}/checks`).remove(); }
-    function zrus() { kosik = {}; document.getElementById('kosik-bar').classList.add('hidden'); }
-    function oprav(it) { const n = prompt(`Zadajte presný stav:`, mData[aktMiesto][it]); if(n !== null) db.ref(`prevadzky/${aktMiesto}/${it}`).set(parseInt(n) || 0); }
-    function addKatalog() { const n = document.getElementById('add-i-name').value; const t = document.getElementById('add-i-type').value; if(n) db.ref('materialy').push({name:n, type:t}); }
-    function addMiesto() { const n = document.getElementById('add-p-name').value; if(n) db.ref('prevadzky/'+n).update({_init:true}); }
-    function addTask() { const t = document.getElementById('add-task-text').value; if(t) db.ref('tasks').push({text:t}); }
-    function dbAddUser() { const u = document.getElementById('adm-u-name').value.trim().toLowerCase(); const p = document.getElementById('adm-u-pass').value.trim(); const r = document.getElementById('adm-u-role').value; if(u && p) db.ref('users/'+u).set({pass:p, role:r}); }
-    
-    function renderAdmin() {
-        document.getElementById('adm-i-list').innerHTML = Object.keys(kat).map(id => `<div class="setup-row"><span>${kat[id].name}</span><button class="del-btn" onclick="db.ref('materialy/${id}').remove()">✕</button></div>`).join('');
-        document.getElementById('adm-p-list').innerHTML = Object.keys(mData).map(m => `<div class="setup-row"><span>${m}</span><button class="del-btn" onclick="if(confirm('Zmazať?')) db.ref('prevadzky/${m}').remove()">✕</button></div>`).join('');
-        document.getElementById('adm-task-list').innerHTML = Object.keys(tasks).map(id => `<div class="setup-row"><span>${tasks[id].text}</span><button class="del-btn" onclick="db.ref('tasks/${id}').remove()">✕</button></div>`).join('');
+    function adminAddP() {
+        const n = document.getElementById('adm-p-n').value.trim();
+        const t = document.getElementById('adm-p-t').value;
+        if(n) db.ref('prevadzky/'+n).update({_type:t, rozostup:2});
     }
 
+    function adminAddItem() {
+        const n = document.getElementById('adm-i-n').value.trim();
+        if(n) db.ref('katalog').push(n);
+    }
+
+    function addItemToP() {
+        const it = document.getElementById('sel-katalog').value;
+        if(it) db.ref(`prevadzky/${aktMiesto}/${it}`).set(0);
+    }
+
+    function renderAdminLists() {
+        const pl = document.getElementById('admin-p-list');
+        pl.innerHTML = "";
+        Object.keys(mData.prevadzky || {}).forEach(p => {
+            pl.innerHTML += `<div style="font-size:0.8em; margin-bottom:5px;">${p} <button onclick="db.ref('prevadzky/${p}').remove()">✕</button></div>`;
+        });
+    }
+
+    // --- POČIATOČNÉ NAHRATIE DÁT (Zoznam zo zadania) ---
+    function setupInitialData() {
+        if(!confirm("POZOR! Toto vymaže súčasné dáta a nahraje tvojich 7 prevádzok. Pokračovať?")) return;
+        const data = {
+            "Veternicová 20 - ranná": { rozostup: 2, pradlo: false, _type: "prevadzka" },
+            "Veternicová 20 - poobedná": { rozostup: 2, pradlo: false, _type: "prevadzka" },
+            "Rideta": { rozostup: 2, pradlo: true, p_limit: 3, p_count: 0, _type: "prevadzka" },
+            "ProDiagnostic Group - 14. posch": { rozostup: 2, pradlo: true, p_limit: 5, p_count: 0, _type: "prevadzka" },
+            "Dr. Magnet": { rozostup: 2, pradlo: true, p_limit: 4, p_count: 0, _type: "prevadzka" },
+            "Škola sv. Františka": { rozostup: 7, pradlo: false, _type: "prevadzka" },
+            "Škôlka Lachová": { rozostup: 7, pradlo: false, _type: "prevadzka" },
+            "HLAVNÝ SKLAD": { _type: "sklad" }
+        };
+        db.ref('prevadzky').set(data);
+        db.ref('katalog').set(["Jar 1L", "Mydlo 5L", "Toaletný papier", "Mopy", "Handry"]);
+        alert("Dáta nahraté!");
+    }
+
+    // --- NAVIGÁCIA ---
     function showView(id) {
-        ['view-hlavna', 'view-detail', 'view-history', 'view-admin', 'view-check-setup'].forEach(v => document.getElementById(v).classList.add('hidden'));
+        ['view-hlavna', 'view-detail', 'view-admin'].forEach(v => document.getElementById(v).classList.add('hidden'));
         document.getElementById(id).classList.remove('hidden');
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
         if(id === 'view-hlavna') document.getElementById('b1').classList.add('active');
-        if(id === 'view-history') document.getElementById('b2').classList.add('active');
         if(id === 'view-admin') document.getElementById('b3').classList.add('active');
     }
-// DOČASNÉ: Vytvorenie prvého admina (po prvom prihlásení môžeš zmazať)
-db.ref('users/admin').set({
-    pass: 'admin123',
-    role: 'manager'
-});
+
+    function switchTab(t) {
+        ['zasoby', 'checklist', 'logy'].forEach(x => {
+            document.getElementById('content-'+x).classList.toggle('hidden', t !== x);
+            document.getElementById('tab-'+x).classList.toggle('active', t === x);
+        });
+    }
+
+    // Vytvorenie prvého admina
+    db.ref('users/admin').update({pass:'admin123', role:'manager'});
+
 </script>
 </body>
 </html>
