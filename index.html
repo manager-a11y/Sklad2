@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DEEPLY - Plná Verzia</title>
+    <title>DEEPLY - Stabilná Verzia</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <style>
@@ -15,7 +15,7 @@
         .nav-btn.active { background: var(--deeply-dark); color: white; }
         #main-content { padding: 15px; padding-bottom: 100px; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .karta { padding: 20px; border-radius: 25px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05); cursor: pointer; position: relative; border: 3px solid transparent; background: white; }
+        .karta { padding: 20px; border-radius: 25px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05); cursor: pointer; border: 3px solid transparent; background: white; }
         .status-ok { border-color: var(--check-color); }
         .status-warning { border-color: var(--warning); }
         .status-danger { border-color: var(--danger); }
@@ -23,7 +23,7 @@
         .tab-wrapper { display: flex; background: #e0e0e0; border-radius: 15px; padding: 4px; margin-bottom: 20px; }
         .tab-btn { flex: 1; padding: 12px; border: none; border-radius: 12px; font-weight: bold; background: none; color: #666; font-size: 0.8em; }
         .tab-btn.active { background: white; color: var(--deeply-dark); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        .item-row { background: white; margin-bottom: 10px; padding: 15px; border-radius: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .item-row { background: white; margin-bottom: 10px; padding: 15px; border-radius: 20px; display: flex; justify-content: space-between; align-items: center; font-size: 0.9em; }
         .btn-main { width: 100%; padding: 18px; background: var(--deeply-dark); color: white; border: none; border-radius: 18px; font-weight: bold; cursor: pointer; font-size: 1em; margin-top: 10px; }
         input, select { width: 100%; padding: 15px; margin-bottom: 12px; border-radius: 15px; border: 1px solid #ddd; font-size: 16px; box-sizing: border-box; }
         .admin-section { background: white; padding: 20px; border-radius: 25px; margin-bottom: 20px; }
@@ -71,9 +71,9 @@
             <div id="content-zasoby">
                 <div id="list-items"></div>
                 <div style="margin-top:20px; padding:15px; background:#fff; border-radius:20px;">
-                    <p style="font-weight:bold; margin-top:0;">Pridať tovar do tejto prevádzky:</p>
+                    <p style="font-weight:bold; margin-top:0;">Pridať tovar do objektu:</p>
                     <select id="sel-katalog"></select>
-                    <button class="btn-main" onclick="addItemToP()">PRIDAŤ POLOŽKU</button>
+                    <button class="btn-main" onclick="addItemToP()">PRIDAŤ</button>
                 </div>
             </div>
             <div id="content-checklist" class="hidden">
@@ -93,24 +93,22 @@
                 <h3>👥 Užívatelia</h3>
                 <input type="text" id="adm-u-n" placeholder="Meno">
                 <input type="text" id="adm-u-p" placeholder="Heslo">
-                <select id="adm-u-r"><option value="manager">Manager</option><option value="supervisor">Supervisor</option></select>
                 <button class="btn-main" onclick="adminAddUser()">PRIDAŤ UŽÍVATEĽA</button>
             </div>
             <div class="admin-section">
-                <h3>🏢 Nová prevádzka / Sklad</h3>
-                <input type="text" id="adm-p-n" placeholder="Názov (bez bodiek!)">
+                <h3>🏢 Nový objekt</h3>
+                <input type="text" id="adm-p-n" placeholder="Názov (bez bodiek)">
                 <select id="adm-p-t"><option value="prevadzka">Prevádzka</option><option value="sklad">Sklad</option></select>
                 <button class="btn-main" onclick="adminAddP()">VYTVORIŤ</button>
             </div>
             <div class="admin-section">
-                <h3>📦 Nový tovar do katalógu</h3>
+                <h3>📦 Katalóg tovaru</h3>
                 <input type="text" id="adm-i-n" placeholder="Názov tovaru">
                 <button class="btn-main" onclick="adminAddItem()">PRIDAŤ DO KATALÓGU</button>
             </div>
-            <div class="admin-section">
-                <h3>⚠️ Systém</h3>
-                <button class="btn-main" style="background:var(--danger);" onclick="setupInitialData()">RESET NA VÝCHODZIE DÁTA</button>
-                <div id="p-list-container" style="margin-top:20px;"></div>
+            <div id="p-list-container" class="admin-section">
+                <h3>📋 Správa existujúcich</h3>
+                <div id="admin-p-list-items"></div>
             </div>
         </div>
     </div>
@@ -136,12 +134,12 @@
         db.ref('users/'+u).once('value', s => {
             const d = s.val();
             if(d && String(d.pass) === String(p)) {
-                user = { name: u, role: d.role };
+                user = { name: u, role: d.role || 'manager' };
                 document.getElementById('view-login').classList.add('hidden');
                 document.getElementById('view-app').classList.remove('hidden');
-                if(d.role === 'manager') document.getElementById('b3').classList.remove('hidden');
+                document.getElementById('b3').classList.remove('hidden'); // Admin vždy prístupný pre test
                 startApp();
-            } else alert("Chyba prihlásenia.");
+            } else alert("Chyba mena alebo hesla.");
         });
     }
 
@@ -165,23 +163,25 @@
         const today = new Date();
         let diff = 0; let temp = new Date(last.getTime());
         while(temp < today) { temp.setDate(temp.getDate()+1); if(temp <= today && isWorkDay(temp)) diff++; }
-        if(diff > (p.rozostup || 2)) return 'status-danger';
-        if(diff === (p.rozostup || 2)) return 'status-warning';
-        return 'status-ok';
+        return diff > (p.rozostup || 2) ? 'status-danger' : (diff === (p.rozostup || 2) ? 'status-warning' : 'status-ok');
     }
 
     function renderDashboard() {
         const grid = document.getElementById('dashboard-grid'); grid.innerHTML = "";
         const pp = mData.prevadzky || {};
         Object.keys(pp).sort().forEach(m => {
-            const status = getStatus(m);
-            const prAlert = (pp[m].pradlo && pp[m].p_count >= (pp[m].p_limit || 3));
-            grid.innerHTML += `<div class="karta ${status}" onclick="otvorMiesto('${m}')">
-                ${prAlert ? '<div class="pradlo-badge">🧺</div>' : ''}
+            grid.innerHTML += `<div class="karta ${getStatus(m)}" onclick="otvorMiesto('${m}')">
                 <div style="font-size:1.8em;">${pp[m]._type === 'sklad' ? '📦' : '🏢'}</div>
                 <div style="font-weight:bold; font-size:0.8em; margin-top:5px;">${m}</div>
             </div>`;
         });
+    }
+
+    function showView(id) {
+        ['view-hlavna', 'view-detail', 'view-admin'].forEach(v => document.getElementById(v).classList.add('hidden'));
+        document.getElementById(id).classList.remove('hidden');
+        document.getElementById('b1').classList.toggle('active', id==='view-hlavna');
+        document.getElementById('b3').classList.toggle('active', id==='view-admin');
     }
 
     function otvorMiesto(m) { aktMiesto = m; tmpPradlo = null; showView('view-detail'); document.getElementById('det-n').innerText = m; switchTab('zasoby'); }
@@ -193,10 +193,8 @@
         Object.keys(p).sort().forEach(k => { 
             if(!k.startsWith('_') && !['last_check','rozostup','pradlo','p_limit','p_count','_type'].includes(k)) {
                 list.innerHTML += `<div class="item-row"><span>${k}</span><div style="display:flex;gap:10px;align-items:center;">
-                <button onclick="changeQty('${k}', -1)" style="padding:5px 10px;">-</button>
-                <b>${p[k]}</b>
-                <button onclick="changeQty('${k}', 1)" style="padding:5px 10px;">+</button>
-                <button onclick="removeItemFromP('${k}')" style="background:none; border:none; color:red; margin-left:10px;">✕</button></div></div>`;
+                <button onclick="changeQty('${k}', -1)">-</button><b>${p[k]}</b><button onclick="changeQty('${k}', 1)">+</button>
+                <button onclick="removeItemFromP('${k}')" style="color:red;border:none;background:none;">✕</button></div></div>`;
             }
         });
     }
@@ -211,24 +209,23 @@
         if(it) db.ref(`prevadzky/${aktMiesto}/${it}`).set(0);
     }
 
-    function removeItemFromP(it) { if(confirm('Zmazať '+it+' z tejto prevádzky?')) db.ref(`prevadzky/${aktMiesto}/${it}`).remove(); }
+    function removeItemFromP(it) { if(confirm('Zmazať '+it+'?')) db.ref(`prevadzky/${aktMiesto}/${it}`).remove(); }
 
     function adminAddUser() {
         const n = document.getElementById('adm-u-n').value.trim().toLowerCase();
         const p = document.getElementById('adm-u-p').value.trim();
-        const r = document.getElementById('adm-u-r').value;
-        if(n && p) db.ref('users/'+n).set({pass:p, role:r}).then(()=>alert('Užívateľ pridaný'));
+        if(n && p) db.ref('users/'+n).set({pass:p, role:'manager'}).then(()=>alert('Užívateľ pridaný'));
     }
 
     function adminAddP() {
         const n = document.getElementById('adm-p-n').value.trim();
         const t = document.getElementById('adm-p-t').value;
-        if(n) db.ref('prevadzky/'+n).set({_type:t, rozostup:2}).then(()=>alert('Vytvorené'));
+        if(n) db.ref('prevadzky/'+n).update({_type:t, rozostup:2}).then(()=>alert('Vytvorené'));
     }
 
     function adminAddItem() {
         const n = document.getElementById('adm-i-n').value.trim();
-        if(n) db.ref('katalog').push(n).then(()=>alert('Pridané do katalógu'));
+        if(n) db.ref('katalog').push(n).then(()=>alert('Pridané'));
     }
 
     function updateKatalogSelect() {
@@ -242,24 +239,17 @@
     function submitCheck() {
         const p = mData.prevadzky[aktMiesto];
         if(p.pradlo && tmpPradlo === null) return alert("Označte prádlo!");
-        const now = new Date().toISOString();
-        db.ref(`prevadzky/${aktMiesto}/last_check`).set(now);
+        db.ref(`prevadzky/${aktMiesto}/last_check`).set(new Date().toISOString());
         if(p.pradlo) db.ref(`prevadzky/${aktMiesto}/p_count`).set(tmpPradlo ? 0 : (p.p_count || 0) + 1);
-        alert("Kontrola OK"); showView('view-hlavna');
+        alert("OK"); showView('view-hlavna');
     }
 
     function renderAdminList() {
-        const cont = document.getElementById('p-list-container'); cont.innerHTML = "<h4>Zoznam objektov:</h4>";
+        const cont = document.getElementById('admin-p-list-items'); if(!cont) return;
+        cont.innerHTML = "";
         Object.keys(mData.prevadzky || {}).forEach(p => {
-            cont.innerHTML += `<div style="padding:10px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; background:white; margin-bottom:5px; border-radius:10px;">${p} <button onclick="db.ref('prevadzky/${p}').remove()" style="color:red; border:none; background:none; font-weight:bold;">ZMAZAŤ</button></div>`;
+            cont.innerHTML += `<div style="padding:10px; border-bottom:1px solid #eee; display:flex; justify-content:space-between;">${p} <button onclick="db.ref('prevadzky/${p}').remove()" style="color:red;border:none;background:none;">ZMAZAŤ</button></div>`;
         });
-    }
-
-    function showView(id) {
-        ['view-hlavna', 'view-detail', 'view-admin'].forEach(v => document.getElementById(v).classList.add('hidden'));
-        document.getElementById(id).classList.remove('hidden');
-        document.getElementById('b1').classList.toggle('active', id==='view-hlavna');
-        document.getElementById('b3').classList.toggle('active', id==='view-admin');
     }
 
     function switchTab(t) {
@@ -269,25 +259,7 @@
         document.getElementById('tab-checklist').classList.toggle('active', t==='checklist');
     }
 
-    function setupInitialData() {
-        if(!confirm("POZOR! Toto nahradí všetko vaším zoznamom 7 prevádzok. Pokračovať?")) return;
-        const init = {
-            prevadzky: {
-                "Veternicova 20 - ranna": { rozostup: 2, pradlo: false, _type: "prevadzka" },
-                "Veternicova 20 - poobedna": { rozostup: 2, pradlo: false, _type: "prevadzka" },
-                "Rideta": { rozostup: 2, pradlo: true, p_limit: 3, p_count: 0, _type: "prevadzka" },
-                "ProDiagnostic Group - 14 posch": { rozostup: 2, pradlo: true, p_limit: 5, p_count: 0, _type: "prevadzka" },
-                "Dr Magnet": { rozostup: 2, pradlo: true, p_limit: 4, p_count: 0, _type: "prevadzka" },
-                "Skola sv Frantiska": { rozostup: 7, pradlo: false, _type: "prevadzka" },
-                "Skolka Lachova": { rozostup: 7, pradlo: false, _type: "prevadzka" },
-                "HLAVNY SKLAD": { _type: "sklad" }
-            },
-            users: { "admin": { pass: "admin123", role: "manager" } },
-            katalog: { "a":"Jar 1L", "b":"Mydlo 5L", "c":"Papier TOAL", "d":"Mop", "e":"Handra" }
-        };
-        db.ref('/').set(init).then(() => location.reload());
-    }
-
+    // Zabezpečenie admina pri štarte
     db.ref('users/admin').update({pass:'admin123', role:'manager'});
 </script>
 </body>
