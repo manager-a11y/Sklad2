@@ -3,41 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DEEPLY Sklad & Checklist</title>
+    <title>DEEPLY Sklad & Profi Checklist</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <style>
         :root { --deeply-yellow: #FFD700; --deeply-dark: #1a1a1a; --mat-color: #3498db; --tool-color: #9b59b6; --check-color: #27ae60; --bg: #f4f4f4; }
         body { font-family: sans-serif; margin: 0; background: var(--bg); -webkit-tap-highlight-color: transparent; }
         header { position: sticky; top: 0; background: var(--deeply-yellow); padding: 15px; display: flex; justify-content: space-between; align-items: center; z-index: 1000; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .logo { font-weight: 900; font-size: 1.2em; letter-spacing: 1px; }
+        .logo { font-weight: 900; font-size: 1.2em; }
         .nav-btn { background: rgba(0,0,0,0.05); border: none; padding: 10px; border-radius: 10px; font-weight: bold; }
         .nav-btn.active { background: var(--deeply-dark); color: white; }
         #main-content { padding: 15px; padding-bottom: 160px; }
         .section-title { font-size: 0.8em; font-weight: bold; color: #666; margin: 20px 0 10px 5px; text-transform: uppercase; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .karta { background: white; padding: 20px; border-radius: 18px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid transparent; }
-        .last-check { font-size: 0.7em; color: #888; display: block; margin-top: 5px; }
+        .karta { background: white; padding: 20px; border-radius: 18px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         .tab-wrapper { display: flex; background: #eee; border-radius: 12px; padding: 4px; margin-bottom: 20px; }
         .tab-btn { flex: 1; padding: 10px; border: none; border-radius: 10px; font-weight: bold; background: none; color: #666; }
         .tab-btn.active { background: white; color: var(--deeply-dark); box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .kat-title { color: white; padding: 5px 12px; border-radius: 8px; font-size: 0.8em; font-weight: bold; display: inline-block; margin-bottom: 10px; }
-        .bg-mat { background: var(--mat-color); }
-        .bg-tool { background: var(--tool-color); }
-        .item-row { background: white; margin-bottom: 10px; padding: 15px; border-radius: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.03); }
-        .item-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .item-qty { font-weight: 900; font-size: 1.1em; }
-        .item-actions { display: flex; gap: 5px; }
-        .btn-qty { flex: 1; padding: 12px; border: none; background: #f0f0f0; border-radius: 10px; font-weight: bold; }
-        .check-item { display: flex; align-items: center; background: white; padding: 18px; border-radius: 15px; margin-bottom: 10px; gap: 15px; border-left: 5px solid #ddd; }
-        .check-item.done { border-left-color: var(--check-color); opacity: 0.7; }
-        .check-item.done .check-text { text-decoration: line-through; color: #888; }
-        .checkbox-custom { width: 24px; height: 24px; border: 2px solid #ddd; border-radius: 6px; display: flex; align-items: center; justify-content: center; }
+        .item-row { background: white; margin-bottom: 10px; padding: 15px; border-radius: 15px; }
+        .item-info { display: flex; justify-content: space-between; align-items: center; }
+        .check-item { display: flex; align-items: center; background: white; padding: 15px; border-radius: 15px; margin-bottom: 8px; gap: 12px; border-left: 5px solid #ddd; }
+        .check-item.done { border-left-color: var(--check-color); opacity: 0.6; }
+        .checkbox-custom { width: 22px; height: 22px; border: 2px solid #ddd; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.8em; }
         .done .checkbox-custom { background: var(--check-color); border-color: var(--check-color); color: white; }
-        .kosik-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--deeply-dark); color: white; padding: 20px; z-index: 2000; border-top-left-radius: 20px; border-top-right-radius: 20px; }
-        .admin-card { background: white; padding: 15px; border-radius: 15px; margin-bottom: 15px; }
-        input, select { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; font-size: 16px; }
+        .admin-card { background: white; padding: 15px; border-radius: 15px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        input, select { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; }
         .hidden { display: none !important; }
+        .del-btn { color: red; border: none; background: none; font-weight: bold; padding: 5px; }
+        .setup-row { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; }
     </style>
 </head>
 <body>
@@ -60,28 +53,35 @@
     </div>
 
     <div id="view-detail" class="hidden">
-        <div style="display:flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
-            <button onclick="showView('view-hlavna')" style="background:none; border:none; font-weight:bold; color:#666; padding:0;">← SPÄŤ</button>
-            <h2 id="det-n" style="margin:0; text-align:right; font-size: 1.2em;">-</h2>
+        <div style="display:flex; justify-content: space-between; margin-bottom: 15px;">
+            <button onclick="showView('view-hlavna')" style="border:none; background:none; font-weight:bold;">← SPÄŤ</button>
+            <h2 id="det-n" style="margin:0;">-</h2>
         </div>
         <div class="tab-wrapper">
             <button id="tab-zasoby" class="tab-btn active" onclick="switchTab('zasoby')">📦 Zásoby</button>
             <button id="tab-checklist" class="tab-btn" onclick="switchTab('checklist')">✅ Checklist</button>
         </div>
+        
         <div id="content-zasoby">
-            <div style="background:#fff; padding:10px; border-radius:15px; margin-bottom:20px;">
-                <select id="sel-pridat-tovar" style="margin-bottom:5px;"></select>
+            <div style="background:#fff; padding:12px; border-radius:15px; margin-bottom:15px;">
+                <select id="sel-pridat-tovar"></select>
                 <button onclick="pridajZKatalogu()" style="width:100%; padding:10px; background:var(--deeply-yellow); border:none; border-radius:8px; font-weight:bold;">+ PRIDAŤ DO TOHTO MIESTA</button>
             </div>
-            <div class="kat-title bg-mat">💧 MATERIÁL</div>
             <div id="list-mat"></div>
-            <div class="kat-title bg-tool" style="margin-top:20px;">🛠️ POMÔCKY</div>
-            <div id="list-tool"></div>
+            <div id="list-tool" style="margin-top:20px;"></div>
         </div>
+
         <div id="content-checklist" class="hidden">
             <div id="list-check"></div>
-            <button onclick="resetChecklist()" style="width:100%; margin-top:20px; background:none; border:1px dashed #ccc; color:#888; padding:10px; border-radius:10px; font-size:0.8em;">Resetovať checklist</button>
+            <button onclick="showView('view-check-setup')" style="width:100%; margin-top:15px; padding:12px; background:#eee; border:none; border-radius:10px;">⚙️ Nastaviť úlohy pre toto miesto</button>
+            <button onclick="resetChecklist()" style="width:100%; margin-top:10px; background:none; border:none; color:#888; font-size:0.8em;">Vynulovať dnešný progres</button>
         </div>
+    </div>
+
+    <div id="view-check-setup" class="hidden">
+        <button onclick="showView('view-detail')" style="border:none; background:none; font-weight:bold; margin-bottom:15px;">← HOTOVO</button>
+        <h3>Vyberte úlohy pre: <span id="setup-n"></span></h3>
+        <div id="setup-tasks-list" class="admin-card"></div>
     </div>
 
     <div id="view-history" class="hidden">
@@ -90,23 +90,24 @@
     </div>
 
     <div id="view-admin" class="hidden">
-        <div class="section-title">Administrácia</div>
         <div class="admin-card">
             <h4>Katalóg tovarov</h4>
             <input type="text" id="add-i-name" placeholder="Názov tovaru">
-            <select id="add-i-type">
-                <option value="material">Materiál</option>
-                <option value="pomocka">Pomôcka</option>
-            </select>
+            <select id="add-i-type"><option value="material">Materiál</option><option value="pomocka">Pomôcka</option></select>
             <button onclick="addKatalog()" style="width:100%; padding:12px; background:var(--deeply-yellow); border:none; border-radius:10px; font-weight:bold;">Pridať do katalógu</button>
-            <div id="adm-i-list" style="margin-top:15px;"></div>
+            <div id="adm-i-list" style="max-height:150px; overflow-y:auto; margin-top:10px;"></div>
         </div>
         <div class="admin-card">
-            <h4>Mesta a Úlohy</h4>
+            <h4>Miesta (Sklady/Prevádzky)</h4>
             <input type="text" id="add-p-name" placeholder="Názov miesta">
-            <button onclick="addMiesto()" style="width:100%; padding:12px; background:#ddd; border:none; border-radius:10px; margin-bottom:15px;">Pridať miesto</button>
-            <input type="text" id="add-task-text" placeholder="Nová úloha">
-            <button onclick="addTask()" style="width:100%; padding:12px; background:var(--check-color); color:white; border:none; border-radius:10px;">Pridať úlohu</button>
+            <button onclick="addMiesto()" style="width:100%; padding:12px; background:#ddd; border:none; border-radius:10px;">Pridať miesto</button>
+            <div id="adm-p-list" style="margin-top:10px;"></div>
+        </div>
+        <div class="admin-card">
+            <h4>Master zoznam úloh</h4>
+            <input type="text" id="add-task-text" placeholder="Názov úlohy">
+            <button onclick="addTask()" style="width:100%; padding:12px; background:var(--check-color); color:white; border:none; border-radius:10px;">Vytvoriť novú úlohu</button>
+            <div id="adm-task-list" style="margin-top:10px;"></div>
         </div>
     </div>
 </div>
@@ -114,7 +115,7 @@
 <div id="kosik-bar" class="kosik-bar hidden">
     <div id="kosik-text" style="font-size:0.85em; margin-bottom:10px; font-weight:bold; color:var(--deeply-yellow);"></div>
     <div style="display:flex; gap:10px;">
-        <select id="kosik-kam" style="margin:0;"></select>
+        <select id="kosik-kam"></select>
         <button onclick="potvrd()" style="background:var(--deeply-yellow); border:none; padding:10px 20px; border-radius:10px; font-weight:bold;">OK</button>
         <button onclick="zrus()" style="background:none; border:1px solid white; color:white; border-radius:10px;">X</button>
     </div>
@@ -136,12 +137,8 @@
 
     db.ref('/').on('value', snap => {
         const d = snap.val() || {};
-        mData = d.prevadzky || {};
-        kat = d.materialy || {};
-        tasks = d.tasks || {};
-        renderDash(); renderAdmin();
-        renderHist(d.historia || {});
-        if(aktMiesto) refreshDetail();
+        mData = d.prevadzky || {}; kat = d.materialy || {}; tasks = d.tasks || {};
+        renderDash(); renderAdmin(); renderHist(d.historia || {}); if(aktMiesto) refreshDetail();
     });
 
     function renderDash() {
@@ -149,9 +146,9 @@
         gs.innerHTML = ""; gp.innerHTML = "";
         Object.keys(mData).sort().forEach(m => {
             const h = `<div class="karta" onclick="otvorMiesto('${m}')">
-                <div style="font-size:2em;">${m.toLowerCase().includes('sklad') ? '📦' : '🏢'}</div>
-                <div style="font-weight:bold;">${m}</div>
-                <span class="last-check">Kontrola: ${mData[m].posledna_kontrola || "---"}</span>
+                <div style="font-size:1.8em;">${m.toLowerCase().includes('sklad') ? '📦' : '🏢'}</div>
+                <div style="font-weight:bold; font-size:0.9em;">${m}</div>
+                <span style="font-size:0.7em; color:#888;">Kontrola: ${mData[m].posledna_kontrola || "---"}</span>
             </div>`;
             if(m.toLowerCase().includes('sklad')) gs.innerHTML += h; else gp.innerHTML += h;
         });
@@ -161,60 +158,60 @@
 
     function refreshDetail() {
         const lm = document.getElementById('list-mat'); const lt = document.getElementById('list-tool');
-        lm.innerHTML = ""; lt.innerHTML = "";
+        lm.innerHTML = '<div class="kat-title bg-mat">💧 MATERIÁL</div>'; lt.innerHTML = '<div class="kat-title bg-tool">🛠️ POMÔCKY</div>';
         const d = mData[aktMiesto] || {};
         
-        // Zoznam tovaru na mieste
-        Object.keys(d).filter(k => !['_init','posledna_kontrola','checks'].includes(k)).sort().forEach(it => {
+        Object.keys(d).filter(k => !['_init','posledna_kontrola','checks','enabledTasks'].includes(k)).sort().forEach(it => {
             const info = Object.values(kat).find(x => x.name === it) || {type:'material'};
-            const h = `<div class="item-row">
-                <div class="item-info"><span>${it}</span><span class="item-qty">${d[it]} ks</span></div>
-                <div class="item-actions">
-                    <button class="btn-qty" onclick="vloz('${it}', 1)">+1</button>
-                    <button class="btn-qty" onclick="vloz('${it}', -1)">-1</button>
-                    <button onclick="oprav('${it}')" style="background:none; border:none; font-size:1.2em;">✏️</button>
-                </div>
-            </div>`;
+            const h = `<div class="item-row"><div class="item-info"><strong>${it}</strong><span>${d[it]} ks</span></div>
+                <div style="display:flex; gap:5px; margin-top:10px;">
+                    <button class="btn-qty" onclick="vloz('${it}', 1)">+1</button><button class="btn-qty" onclick="vloz('${it}', -1)">-1</button>
+                    <button onclick="oprav('${it}')" style="background:none; border:none; padding:10px;">✏️</button>
+                    <button onclick="zmazMiestnyTovar('${it}')" style="color:#ccc; border:none; background:none;">✖</button>
+                </div></div>`;
             if(info.type === 'pomocka') lt.innerHTML += h; else lm.innerHTML += h;
         });
 
-        // Dropdown pre pridanie z katalogu
         const sel = document.getElementById('sel-pridat-tovar'); sel.innerHTML = "";
-        Object.values(kat).forEach(k => sel.innerHTML += `<option value="${k.name}">${k.name}</option>`);
+        Object.values(kat).sort((a,b)=>a.name.localeCompare(b.name)).forEach(k => sel.innerHTML += `<option value="${k.name}">${k.name}</option>`);
 
-        // Checklist
+        // Zobrazenie úloh len pre toto miesto
         const lc = document.getElementById('list-check'); lc.innerHTML = "";
+        const enabled = d.enabledTasks || {};
         const savedChecks = d.checks || {};
         Object.keys(tasks).forEach(tid => {
-            const done = savedChecks[tid] ? 'done' : '';
-            lc.innerHTML += `<div class="check-item ${done}" onclick="toggleCheck('${tid}')">
-                <div class="checkbox-custom">${done ? '✓' : ''}</div><div class="check-text">${tasks[tid].text}</div>
-            </div>`;
+            if(enabled[tid]) {
+                const done = savedChecks[tid] ? 'done' : '';
+                lc.innerHTML += `<div class="check-item ${done}" onclick="toggleCheck('${tid}')">
+                    <div class="checkbox-custom">${done ? '✓' : ''}</div><div>${tasks[tid].text}</div>
+                </div>`;
+            }
         });
+        if(lc.innerHTML === "") lc.innerHTML = "<p style='color:#888; text-align:center;'>Žiadne úlohy nie sú nastavené.</p>";
 
         const s = document.getElementById('kosik-kam'); s.innerHTML = `<option value="PRIJEM">DODÁVATEĽ</option>`;
         Object.keys(mData).filter(x => x !== aktMiesto).sort().forEach(x => s.innerHTML += `<option value="${x}">${x}</option>`);
+
+        // Setup pohľad
+        document.getElementById('setup-n').innerText = aktMiesto;
+        const stl = document.getElementById('setup-tasks-list'); stl.innerHTML = "";
+        Object.keys(tasks).forEach(tid => {
+            const isSet = enabled[tid] ? 'checked' : '';
+            stl.innerHTML += `<div class="setup-row"><span>${tasks[tid].text}</span><input type="checkbox" style="width:auto;" ${isSet} onchange="toggleEnabledTask('${tid}', this.checked)"></div>`;
+        });
     }
 
-    function pridajZKatalogu() {
-        const val = document.getElementById('sel-pridat-tovar').value;
-        if(val) db.ref(`prevadzky/${aktMiesto}/${val}`).set(0);
-    }
-
+    function toggleEnabledTask(tid, val) { db.ref(`prevadzky/${aktMiesto}/enabledTasks/${tid}`).set(val || null); }
+    function zmazMiestnyTovar(it) { if(confirm('Odstrániť '+it+' z tohto miesta?')) db.ref(`prevadzky/${aktMiesto}/${it}`).remove(); }
+    function pridajZKatalogu() { const val = document.getElementById('sel-pridat-tovar').value; if(val) db.ref(`prevadzky/${aktMiesto}/${val}`).set(0); }
     function switchTab(t) {
         document.getElementById('content-zasoby').classList.toggle('hidden', t !== 'zasoby');
         document.getElementById('content-checklist').classList.toggle('hidden', t !== 'checklist');
         document.getElementById('tab-zasoby').classList.toggle('active', t === 'zasoby');
         document.getElementById('tab-checklist').classList.toggle('active', t === 'checklist');
     }
-
-    function toggleCheck(tid) {
-        const curr = (mData[aktMiesto].checks && mData[aktMiesto].checks[tid]) || false;
-        db.ref(`prevadzky/${aktMiesto}/checks/${tid}`).set(!curr);
-    }
-
-    function resetChecklist() { if(confirm('Resetovať?')) db.ref(`prevadzky/${aktMiesto}/checks`).remove(); }
-
+    function toggleCheck(tid) { const curr = (mData[aktMiesto].checks && mData[aktMiesto].checks[tid]) || false; db.ref(`prevadzky/${aktMiesto}/checks/${tid}`).set(!curr); }
+    function resetChecklist() { if(confirm('Vynulovať dnešné úlohy?')) db.ref(`prevadzky/${aktMiesto}/checks`).remove(); }
     function vloz(it, q) {
         kosik[it] = (kosik[it] || 0) + q; if(kosik[it] === 0) delete kosik[it];
         const bar = document.getElementById('kosik-bar');
@@ -222,7 +219,6 @@
             bar.classList.remove('hidden'); document.getElementById('kosik-text').innerText = Object.keys(kosik).map(x => `${kosik[x]}x ${x}`).join(', ');
         } else bar.classList.add('hidden');
     }
-
     function potvrd() {
         const kam = document.getElementById('kosik-kam').value; const up = {}; const l = [];
         Object.keys(kosik).forEach(it => {
@@ -234,41 +230,31 @@
         up[`historia/${Date.now()}`] = { datum: new Date().toLocaleString('sk-SK'), odkial: kam==="PRIJEM"?"DODÁVKA":aktMiesto, kam: kam==="PRIJEM"?aktMiesto:kam, polozky: l.join(', ') };
         db.ref().update(up).then(() => { kosik = {}; document.getElementById('kosik-bar').classList.add('hidden'); showView('view-hlavna'); });
     }
-
     function zrus() { kosik = {}; document.getElementById('kosik-bar').classList.add('hidden'); }
-
     function oprav(it) {
         const n = prompt(`Stav pre ${it}:`, mData[aktMiesto][it]);
         if(n !== null) { db.ref(`prevadzky/${aktMiesto}/${it}`).set(parseInt(n) || 0); db.ref(`prevadzky/${aktMiesto}/posledna_kontrola`).set(new Date().toLocaleDateString('sk-SK')); }
     }
-
-    function addKatalog() {
-        const n = document.getElementById('add-i-name').value;
-        const t = document.getElementById('add-i-type').value;
-        if(n) { db.ref('materialy').push({name:n, type:t}); document.getElementById('add-i-name').value=""; }
-    }
+    function addKatalog() { const n = document.getElementById('add-i-name').value; const t = document.getElementById('add-i-type').value; if(n) { db.ref('materialy').push({name:n, type:t}); document.getElementById('add-i-name').value=""; } }
+    function addMiesto() { const n = document.getElementById('add-p-name').value; if(n) { db.ref('prevadzky/'+n).update({_init:true}); document.getElementById('add-p-name').value=""; } }
+    function addTask() { const t = document.getElementById('add-task-text').value; if(t) { db.ref('tasks').push({text:t}); document.getElementById('add-task-text').value=""; } }
 
     function renderAdmin() {
-        const il = document.getElementById('adm-i-list');
-        il.innerHTML = Object.keys(kat).map(id => `<div style="display:flex; justify-content:space-between; padding:5px; border-bottom:1px solid #eee; font-size:0.8em;"><span>${kat[id].name} (${kat[id].type})</span><button onclick="db.ref('materialy/${id}').remove()" style="color:red; border:none; background:none;">✖</button></div>`).join('');
+        document.getElementById('adm-i-list').innerHTML = Object.keys(kat).map(id => `<div class="setup-row"><span>${kat[id].name}</span><button class="del-btn" onclick="db.ref('materialy/${id}').remove()">✖</button></div>`).join('');
+        document.getElementById('adm-p-list').innerHTML = Object.keys(mData).map(m => `<div class="setup-row"><span>${m}</span><button class="del-btn" onclick="if(confirm('Zmazať celé miesto?')) db.ref('prevadzky/${m}').remove()">✖</button></div>`).join('');
+        document.getElementById('adm-task-list').innerHTML = Object.keys(tasks).map(id => `<div class="setup-row"><span>${tasks[id].text}</span><button class="del-btn" onclick="db.ref('tasks/${id}').remove()">✖</button></div>`).join('');
     }
-
     function renderHist(h) {
-        document.getElementById('list-hist').innerHTML = Object.values(h).reverse().slice(0, 15).map(x => `<div style="background:white; padding:12px; border-radius:12px; margin-bottom:10px; font-size:0.8em;"><div style="color:#888;">${x.datum}</div><strong>${x.odkial} ➡️ ${x.kam}</strong><br>${x.polozky}</div>`).join('');
+        document.getElementById('list-hist').innerHTML = Object.values(h).reverse().slice(0, 15).map(x => `<div style="background:white; padding:10px; border-radius:12px; margin-bottom:8px; font-size:0.8em;"><strong>${x.odkial} ➡️ ${x.kam}</strong><br>${x.polozky}</div>`).join('');
     }
-
     function showView(id) {
-        ['view-hlavna', 'view-detail', 'view-history', 'view-admin'].forEach(v => document.getElementById(v).classList.add('hidden'));
+        ['view-hlavna', 'view-detail', 'view-history', 'view-admin', 'view-check-setup'].forEach(v => document.getElementById(v).classList.add('hidden'));
         document.getElementById(id).classList.remove('hidden');
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
         if(id === 'view-hlavna') document.getElementById('b1').classList.add('active');
         if(id === 'view-history') document.getElementById('b2').classList.add('active');
         if(id === 'view-admin') document.getElementById('b3').classList.add('active');
-        window.scrollTo(0,0);
     }
-
-    function addMiesto() { const n = document.getElementById('add-p-name').value; if(n) { db.ref('prevadzky/'+n).update({_init:true}); document.getElementById('add-p-name').value=""; } }
-    function addTask() { const t = document.getElementById('add-task-text').value; if(t) { db.ref('tasks').push({text:t}); document.getElementById('add-task-text').value=""; } }
 </script>
 </body>
 </html>
